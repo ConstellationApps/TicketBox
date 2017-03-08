@@ -1,0 +1,21 @@
+<div class="mdl-card__title">
+    <h2 class="mdl-card__title-text">Ticket Box</h2>
+</div>
+<div class="mdl-card__supporting-text">
+    <ul class="mdl-list">
+        <li class="mdl-list__item">
+            <span class="mdl-list__item-primary-content">
+                <i class="material-icons mdl-list__item-icon">pageview</i>
+                <a href="{% url 'view_inboxes' %}">View Inboxes List</a>
+            </span>
+        </li>
+        {% if perms.constellation_ticketbox.create_inbox %}
+        <li class="mdl-list__item">
+            <span class="mdl-list__item-primary-content">
+                <i class="material-icons mdl-list__item-icon">settings</i>
+                <a href="{% url 'manage_inboxes' %}">Manage Inboxes</a>
+            </span>
+        </li>
+        {% endif %}
+    </ul>
+</div>

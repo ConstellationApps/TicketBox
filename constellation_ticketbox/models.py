@@ -20,8 +20,8 @@ class Ticket(models.Model):
 
 class Inbox(models.Model):
     name = models.CharField(max_length=128, unique=True)
+    desc = models.TextField()
     archived = models.BooleanField(default=False)
-    desc = models.TextField
     readGroup = models.ForeignKey(Group, null=True, blank=True,
                                   related_name='+')
     addGroup = models.ForeignKey(Group, null=True, blank=True,

@@ -8,8 +8,8 @@ urlpatterns = [
 # View Routes
 # =============================================================================
 
-    url(r'^view/list$', views.view_list,
-        name="view_list"),
+    url(r'^view/inboxes$', views.view_inboxes,
+        name="view_inboxes"),
     url(r'^view/inbox/([\d]*)$', views.view_inbox,
         name="view_inbox"),
 
@@ -42,7 +42,7 @@ urlpatterns = [
     url(r'^api/v1/inbox/([\d]*)/update$', views.api_v1_inbox_update,
         name="api_v1_inbox_update"),
     url(r'^api/v1/inbox/([\d]*)/info$', views.api_v1_inbox_info,
-        name="api_v1_inbox_update")
+        name="api_v1_inbox_update"),
 
 
 # -----------------------------------------------------------------------------
