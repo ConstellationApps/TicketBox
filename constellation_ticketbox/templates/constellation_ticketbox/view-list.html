@@ -1,0 +1,55 @@
+{% extends "constellation_base/base.html" %}
+
+{% block title %}Ticket Box | View Boxes{% endblock %}
+{% block heading %}Ticket Box | View Boxes{% endblock %}
+
+{% block head %}
+{{ block.super }}
+{% load static %}
+<link rel="stylesheet" href="{% static 'constellation_ticketbox/css/ticketbox.css' %}">
+{% endblock %}
+
+{% block js %}
+<div id="message-toast" class="mdl-js-snackbar mdl-snackbar">
+  <div class="mdl-snackbar__text"></div>
+  <button class="mdl-snackbar__action" type="button"></button>
+</div>
+{{ block.super }}
+{% load static %}
+<script src="{% static 'constellation_ticketbox/js/view-list.js' %}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.5/handlebars.min.js"></script>
+<script>
+    var url_api_v1_box_list = "{% url 'api_v1_box_list' %}"
+    var url_view_box = "{% url 'view_box' 0 %}"
+</script>
+{% endblock %}
+
+{% block content %}
+<div id="boxesCard" class="mdl-card mdl-cell--8-col mdl-cell--2-offset-desktop mdl-shadow--2dp mdl-grid">
+    {% verbatim %}
+    <script id="handlebars-box" type="text/x-handlebars-template">
+        <div class="mdl-card__title">
+            <h2 class="mdl-card__title-text">Boxes</h2>
+        </div>
+        <div class="mdl-card__supporting-text">
+            <div class="mdl-list">
+            {{#if boxes}}
+            {{#each boxes}}
+                <div class="mdl-list__item">
+                    <span class="mdl-list__item-primary-content">
+                        <a href="{{url}}">{{name}}</a>
+                    </span>
+                    <span class="mdl-list__item-secondary-content">
+                        {{desc}}
+                    </span>
+                </div>
+            {{/each}}
+            {{else}}
+                No active boxes yet.
+            {{/if}}
+            </div>
+        </div>
+    </script>
+    {% endverbatim %}
+</div>
+{% endblock %}

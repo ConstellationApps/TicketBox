@@ -1,5 +1,6 @@
 import json
 
+from django.contrib.auth.models import Group
 from django.shortcuts import render
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
@@ -8,27 +9,30 @@ from django.http import HttpResponseBadRequest
 from django.http import HttpResponseServerError
 from django.core import serializers
 from django.urls import reverse
-from django.contrib.auth.decorators import (
-    login_required,
-    permission_required
+from django.contrib.auth.decorators import login_required
+
+from guardian.decorators import (
+    permission_required,
 )
+from guardian.shortcuts import get_objects_for_user
 
 from constellation_base.models import GlobalTemplateSettings
 
-from .models import Inbox
+from .models import Box
 from .models import Ticket
 from .models import Reply
 
-from .forms import InboxForm
+from .forms import BoxForm
+from .forms import TicketForm
 
 # =============================================================================
 # View Functions
 # =============================================================================
 
 @login_required
-def view_inboxes(request):
+def view_boxes(request):
     '''Return the base template that will call the API to display
-    a list of inboxes'''
+    a list of boxes'''
     template_settings_object = GlobalTemplateSettings(allowBackground=False)
     template_settings = template_settings_object.settings_dict()
 
@@ -38,22 +42,23 @@ def view_inboxes(request):
 
 
 @login_required
-def view_inbox(request, inbox_id):
+@permission_required('constellation_ticketbox.action_add_tickets',
+                     (Box, 'id', 'box_id'))
+def view_box(request, box_id):
     '''Return the base template that will call the API to display the
-    entire inbox with all tickets'''
+    entire box with all tickets'''
     template_settings_object = GlobalTemplateSettings(allowBackground=False)
     template_settings = template_settings_object.settings_dict()
     newForm = TicketForm()
     editForm = TicketForm(prefix="edit")
+    box = Box.objects.get(pk=box_id)
 
-    can_add = inbox_perms(request.user, 'add', inbox_id)
-
-    return render(request, 'constellation_ticketbox/inbox.html', {
+    return render(request, 'constellation_ticketbox/box.html', {
         'form': newForm,
         'editForm': editForm,
-        'id': inbox_id,
+        'id': box_id,
         'template_settings': template_settings,
-        'can_add': can_add,
+        'box': box,
     })
 
 # =============================================================================
@@ -62,28 +67,33 @@ def view_inbox(request, inbox_id):
 
 
 @login_required
-@permission_required('constellation_ticketbox.create_inbox')
-def manage_inboxes(request):
+@permission_required('constellation_ticketbox.create_box')
+def manage_boxes(request):
     template_settings_object = GlobalTemplateSettings(allowBackground=False)
     template_settings = template_settings_object.settings_dict()
-    inboxForm = InboxForm()
-
-    return render(request, 'constellation_ticketbox/manage-inboxes.html', {
-        'form': inboxForm,
+    boxForm = BoxForm()
+    groups = [(g.name, g.pk) for g in Group.objects.all()]
+    return render(request, 'constellation_ticketbox/manage-boxes.html', {
+        'form': boxForm,
         'template_settings': template_settings,
+        'groups': groups,
     })
 
 
 @login_required
-def manage_inbox_edit(request):
+@permission_required('constellation_ticketbox.action_manage_box', 
+                     (Box, 'id', 'box_id'))
+def manage_box_edit(request, box_id):
     template_settings_object = GlobalTemplateSettings(allowBackground=False)
     template_settings = template_settings_object.settings_dict()
-    inbox = Inbox.objects.get(pk=inbox_id)
-    inboxForm = InboxForm(instance=inbox)
-    return render(request, 'constellation_ticketbox/edit-inbox.html', {
-        'form': inboxForm,
-        'inbox_id': inbox_id,
+    box = Box.objects.get(pk=box_id)
+    boxForm = BoxForm(instance=box)
+    groups = box.get_box_permissions()
+    return render(request, 'constellation_ticketbox/edit-box.html', {
+        'form': boxForm,
+        'box_id': box_id,
         'template_settings': template_settings,
+        'groups': groups,
     })
     
 
@@ -93,97 +103,101 @@ def manage_inbox_edit(request):
 # =============================================================================
 
 # -----------------------------------------------------------------------------
-# API Functions related to Inbox Operations
+# API Functions related to Box Operations
 # -----------------------------------------------------------------------------
 
 @login_required
-def api_v1_inbox_list(request):
-    '''List all inboxes that a user is allowed to view'''
-    if not request.user.is_superuser:
-        inboxObjects = Inbox.objects.filter(pk__in=request.user.groups.all())
+def api_v1_box_list(request):
+    '''List all boxes that a user is allowed to view'''
+    boxObjects = get_objects_for_user(
+        request.user,
+        'constellation_ticketbox.action_add_tickets',
+        Box)
+    if boxObjects:
+        boxes = serializers.serialize('json', boxObjects)
+        return HttpResponse(boxes)
     else:
-        inboxObjects = Inbox.objects.all()
-    if inboxObjects:
-        inboxes = serializers.serialize('json', inboxObjects)
-        return HttpResponse(inboxes)
-    else:
-        return HttpResponseNotFound("You have no inboxes at this time")
+        return HttpResponseNotFound("You have no boxes at this time")
 
 
 @login_required
-@permission_required('constellation_ticketbox.create_inbox')
-def api_v1_inbox_create(request):
-    '''Create an inbox'''
-    inboxForm = InboxForm(request.POST or None)
-    if request.POST and inboxForm.is_valid():
-        newInbox = Inbox()
-        newInbox.name = inboxForm.cleaned_data['name']
-        newInbox.desc = inboxForm.cleaned_data['desc']
-        newInbox.readGroup = inboxForm.cleaned_data['readGroup']
-        newInbox.addGroup = inboxForm.cleaned_data['addGroup']
-        newInbox.manageGroup = inboxForm.cleaned_data['manageGroup']
+@permission_required('constellation_ticketbox.add_box')
+def api_v1_box_create(request):
+    '''Create a box'''
+    boxForm = BoxForm(request.POST or None)
+    if request.POST and boxForm.is_valid():
+        newBox = Box()
+        newBox.name = boxForm.cleaned_data['name']
+        newBox.desc = boxForm.cleaned_data['desc']
         try:
-            newInbox.save()
-            return HttpResponse(serializers.serialize('json', [newInbox,]))
+            newBox.save()
+            newBox.set_box_permissions(request.POST.items())
+            return HttpResponse(serializers.serialize('json', [newBox,]))
         except:
-            return HttpResponseServerError("Could not save inbox at this time")
+            return HttpResponseServerError("Could not save box at this time")
     else:
         return HttpResponseBadRequest("Invalid Form Data!")
 
 
 @login_required
-def api_v1_inbox_update(request):
-    '''Update an inbox'''
-    inboxForm = InboxForm(request.POST or None)
-    if request.POST and inboxForm.is_valid():
-        inbox = Inbox.objects.get(pk=inboxID)
-        inbox.name = inboxForm.cleaned_data['name']
-        inbox.desc = inboxForm.cleaned_data['desc']
-        inbox.readGroup = inboxForm.cleaned_data['readGroup']
-        inbox.addGroup = inboxForm.cleaned_data['addGroup']
-        inbox.manageGroup = inboxForm.cleaned_data['manageGroup']
-        try:
-            inbox.save()
-            return HttpResponse(json.dumps({"inbox" : reverse("view_inbox", args=[inboxID,])}))
-        except:
-            return HttpResponseServerError("Invalid Inbox ID!")
+@permission_required('constellation_ticketbox.action_manage_box',
+                     (Box, 'id', 'box_id'))
+def api_v1_box_update(request, box_id):
+    '''Update a box'''
+    boxForm = BoxForm(request.POST or None)
+    if request.POST and boxForm.is_valid():
+        try: 
+            box = Box.objects.get(pk=box_id)
+            box.set_box_permissions(request.POST.items())
+            box.name = boxForm.cleaned_data['name']
+            box.desc = boxForm.cleaned_data['desc']
+            box.save()
+            return HttpResponse(json.dumps({"box" : reverse("view_box", args=[box_id,])}))
+        except AttributeError:
+            return HttpResponseServerError("Invalid Box ID!")
     else:
         return HttpResponseBadRequest("Invalid Form Data!")
 
 
 @login_required
-def api_v1_inbox_archive(request):
-    '''Archive an inbox'''
-    inbox = Inbox.objects.get(pk=inboxID)
-    inbox.archived = True
+@permission_required('constellation_ticketbox.action_manage_box',
+                     (Box, 'id', 'box_id'))
+def api_v1_box_archive(request, box_id):
+    '''Archive a box'''
+    box = Box.objects.get(pk=box_id)
+    box.archived = True
     try:
-        inbox.save()
-        return HttpResponse("Inbox Archived")
+        box.save()
+        return HttpResponse("Box Archived")
     except:
-        return HttpResponseServerError("Inbox could not be archived at this time")
+        return HttpResponseServerError("Box could not be archived at this time")
 
 
 @login_required
-def api_v1_inbox_unarchive(request):
-    '''Unarchive an inbox'''
-    inbox = Inbox.objects.get(pk=inboxID)
-    inbox.archived = False
+@permission_required('constellation_ticketbox.action_manage_box',
+                     (Box, 'id', 'box_id'))
+def api_v1_box_unarchive(request, box_id):
+    '''Unarchive a box'''
+    box = Box.objects.get(pk=box_id)
+    box.archived = False
     try:
-        inbox.save()
-        return HttpResponse("Inbox Un-Archived")
+        box.save()
+        return HttpResponse("Box Un-Archived")
     except:
-        return HttpResponseServerError("Inbox could not be un-archived at this time")
+        return HttpResponseServerError("Box could not be un-archived at this time")
 
 
 @login_required
-def api_v1_inbox_info(request):
-    '''Retrieve inbox title and description'''
+@permission_required('constellation_ticketbox.action_add_tickets',
+                     (Box, 'id', 'box_id'))
+def api_v1_box_info(request, box_id):
+    '''Retrieve box title and description'''
     try:
-        inbox = Inbox.objects.get(pk=inboxID)
-        response = json.dumps({"title" : inbox.name, "desc" : inbox.desc})
+        box = Box.objects.get(pk=box_id)
+        response = json.dumps({"title" : box.name, "desc" : box.desc})
         return HttpResponse(response)
     except:
-        return HttpResponseNotFound("No inbox with given ID found")
+        return HttpResponseNotFound("No box with given ID found")
 
 
 # -----------------------------------------------------------------------------
@@ -193,5 +207,4 @@ def api_v1_inbox_info(request):
 @login_required
 def view_dashboard(request):
     '''Return a card that will appear on the main dashboard'''
-
     return render(request, 'constellation_ticketbox/dashboard.html')

@@ -1,0 +1,71 @@
+{% extends "constellation_base/base.html" %}
+
+{% block head %}
+{{ block.super }}
+{% load static %}
+<link rel="stylesheet" href="{% static 'constellation_ticketbox/css/ticketbox.css' %}">
+{% endblock %}
+
+{% block js %}
+<div id="message-toast" class="mdl-js-snackbar mdl-snackbar">
+  <div class="mdl-snackbar__text"></div>
+  <button class="mdl-snackbar__action" type="button"></button>
+</div>
+{{ block.super }}
+{% load static %}
+<script src="{% static 'constellation_ticketbox/js/manage-boxes.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+<div id="formCard" class="form-card mdl-card mdl-cell--8-col mdl-cell--2-offset-desktop mdl-shadow--2dp mdl-grid">
+  <div class="mdl-card__title">
+    <h2 class="mdl-card__title-text">Edit Box</h2>
+  </div>
+  <div class="mdl-card__supporting-text mdl-grid">
+    <form method="post" action="{% url 'api_v1_box_update' box_id %}" id="editBoxForm" class="mdl-cell--12-col">
+      {% csrf_token %}
+      {{ form.active.as_hidden }}
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label mdl-cell--12-col mdl-cell--bottom">
+        {{ form.name }}
+        <label class="mdl-textfield__label" for="{{ form.name.id_for_label }}">Name</label>
+      </div>
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label mdl-cell--12-col mdl-cell--bottom">
+        {{ form.desc }}
+        <label class="mdl-textfield__label" for="{{ form.desc.id_for_label }}">Description</label>
+      </div>
+      <ul class="demo-list-control mdl-list">
+        <li class="mdl-list__item">
+          <span id="group-header" class="mdl-cell--4-col">Group</span>
+          <span class="mdl-cell--12-col permissions-header">
+            <i id="perm-none" class="material-icons perm-icon">not_interested</i>
+            <div class="mdl-tooltip" for="perm-none">No Permissions</div>
+            <i id="perm-add" class="material-icons perm-icon">add_box</i>
+            <div class="mdl-tooltip" for="perm-add">Add Tickets</div>
+            <i id="perm-view" class="material-icons perm-icon">visibility</i>
+            <div class="mdl-tooltip" for="perm-view">View Box Tickets</div>
+            <i id="perm-reply" class="material-icons perm-icon">forum</i>
+            <div class="mdl-tooltip" for="perm-reply">Reply to Tickets</div>
+            <i id="perm-manage" class="material-icons perm-icon">mode_edit</i>
+            <div class="mdl-tooltip" for="perm-manage">Manage Tickets</div>
+            <i id="perm-edit" class="material-icons perm-icon">settings</i>
+            <div class="mdl-tooltip" for="perm-edit">Manage Box</div>
+          </span>
+        {% for group in groups %}
+        <li class="mdl-list__item">
+          <span id="group-{{ group.id }}" class="mdl-cell--4-col">{{ group.name }}</span>
+          <span class="mdl-cell--12-col">
+            <input id="slider-{{ group.id }}" name="group-{{ group.id }}" class="mdl-slider mdl-js-slider group-permission" type="range" min="1" max="6" steps="1" value="{{ group.level }}">
+          </span>
+        </li>
+        {% endfor %}
+      </ul>
+      <div class="mdl-card__actions">
+        <div class="mdl-layout-spacer"></div>
+        <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--primary">
+          Edit <i class="material-icons right">done</i>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

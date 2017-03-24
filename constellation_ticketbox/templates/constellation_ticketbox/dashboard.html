@@ -6,14 +6,14 @@
         <li class="mdl-list__item">
             <span class="mdl-list__item-primary-content">
                 <i class="material-icons mdl-list__item-icon">pageview</i>
-                <a href="{% url 'view_inboxes' %}">View Inboxes List</a>
+                <a href="{% url 'view_boxes' %}">View Boxes List</a>
             </span>
         </li>
-        {% if perms.constellation_ticketbox.create_inbox %}
+        {% if perms.constellation_ticketbox.create_box %}
         <li class="mdl-list__item">
             <span class="mdl-list__item-primary-content">
                 <i class="material-icons mdl-list__item-icon">settings</i>
-                <a href="{% url 'manage_inboxes' %}">Manage Inboxes</a>
+                <a href="{% url 'manage_boxes' %}">Manage Boxes</a>
             </span>
         </li>
         {% endif %}

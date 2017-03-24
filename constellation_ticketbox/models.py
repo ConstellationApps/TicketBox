@@ -2,7 +2,8 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.contrib.auth.models import Group
 
-# this doesn't support multiple threaded replies yet
+from guardian.shortcuts import assign_perm, remove_perm, get_perms
+
 class Reply(models.Model):
     ticket = models.ForeignKey('Ticket', blank=True, null=True)
     owner = models.ForeignKey(User)
@@ -16,22 +17,56 @@ class Ticket(models.Model):
     body = models.TextField(blank=True)
     timestamp = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=128)
-    inbox = models.ForeignKey('Inbox', blank=True, null=True)
+    box = models.ForeignKey('Box', blank=True, null=True)
 
-class Inbox(models.Model):
-    name = models.CharField(max_length=128, unique=True)
+class Box(models.Model):
+    name = models.CharField(max_length=128)
     desc = models.TextField()
     archived = models.BooleanField(default=False)
-    readGroup = models.ForeignKey(Group, null=True, blank=True,
-                                  related_name='+')
-    addGroup = models.ForeignKey(Group, null=True, blank=True,
-                                 related_name='+')
-    manageGroup = models.ForeignKey(Group, null=True, blank=True,
-                                    related_name='+')
+
+    def set_box_permissions(self, groups): 
+        permcodenames = []
+        for node in Box._meta.permissions:
+            permcodenames.append(node[0])
+
+        for groupname, level in groups:
+            if groupname.startswith('group-'):
+                group = groupname.replace('group-', '', 1)
+                group = Group.objects.get(pk=group)
+                level = int(level) - 1
+
+                if level == 0:
+                    for perm in permcodenames:
+                        remove_perm(perm, group, self)
+                else:
+                    for perm in permcodenames[:level]:
+                        assign_perm(perm, group, self)
+                    for perm in permcodenames[level:]:
+                        remove_perm(perm, group, self)
+
+    def get_box_permissions(self):
+        groups = []
+        permcodenames = []
+        for node in Box._meta.permissions:
+            permcodenames.append(node[0])
+
+        for group in Group.objects.all():
+            level = len(set(
+                get_perms(group, self)).intersection(set(permcodenames))) + 1
+
+            groups.append({
+                'name': group.name,
+                'id': group.id,
+                'level': level
+            })
+
+        return groups
 
     class Meta:
         permissions = (
-            ("create_inbox", "Can create an inbox"),
+            ("action_add_tickets", "Can add tickets"),
+            ("action_read_box", "Can read a box"),
+            ("action_make_replies", "Can reply to tickets"),
+            ("action_manage_tickets", "Can manage tickets"),
+            ("action_manage_box", "Can manage a box"),
         )
-
-
