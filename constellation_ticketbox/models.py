@@ -6,18 +6,26 @@ from guardian.shortcuts import assign_perm, remove_perm, get_perms
 
 class Reply(models.Model):
     ticket = models.ForeignKey('Ticket', blank=True, null=True)
-    owner = models.ForeignKey(User)
+    author = models.ForeignKey(User)
     body = models.TextField(blank=True)
     timestamp = models.DateTimeField(auto_now_add=True)
     
 class Ticket(models.Model):
-    owner = models.ForeignKey(User)
+    STATUS_CHOICES = (
+        ('open', 'Open'), 
+        ('closed', 'Closed'),
+    )
+    author = models.ForeignKey(User)
     anonymous = models.BooleanField(default=False)
     title = models.CharField(max_length=128)
     body = models.TextField(blank=True)
     timestamp = models.DateTimeField(auto_now_add=True)
-    status = models.CharField(max_length=128)
+    status = models.CharField(
+        max_length=32, choices=STATUS_CHOICES, default = 'Open'
+    )
+    archived = models.BooleanField(default=False)
     box = models.ForeignKey('Box', blank=True, null=True)
+
 
 class Box(models.Model):
     name = models.CharField(max_length=128)

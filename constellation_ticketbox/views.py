@@ -46,7 +46,7 @@ def view_boxes(request):
                      (Box, 'id', 'box_id'))
 def view_box(request, box_id):
     '''Return the base template that will call the API to display the
-    entire box with all tickets'''
+    box with all visible tickets'''
     template_settings_object = GlobalTemplateSettings(allowBackground=False)
     template_settings = template_settings_object.settings_dict()
     newForm = TicketForm()
@@ -60,6 +60,22 @@ def view_box(request, box_id):
         'template_settings': template_settings,
         'box': box,
     })
+
+
+@login_required
+def view_ticket(request, ticket_id):
+    '''Return the base template that will call the API to display the
+    ticket with all replies'''
+    template_settings_object = GlobalTemplateSettings(allowBackground=False)
+    template_settings = template_settings_object.settings_dict()
+    ticket = Ticket.objects.get(pk=ticket_id)
+
+    return render(request, 'constellation_ticketbox/ticket.html', {
+        'id': ticket_id,
+        'template_settings': template_settings,
+        'ticket': ticket,
+    })
+
 
 # =============================================================================
 # Management Routes
@@ -198,6 +214,71 @@ def api_v1_box_info(request, box_id):
         return HttpResponse(response)
     except:
         return HttpResponseNotFound("No box with given ID found")
+
+# -----------------------------------------------------------------------------
+# API Functions related to Ticket Operations
+# -----------------------------------------------------------------------------
+
+@login_required
+def api_v1_ticket_list(request):
+    '''List all tickets that a user is allowed to view'''
+
+
+@login_required
+def api_v1_ticket_create(request):
+    '''Create a ticket'''
+    ticketForm = TicketForm(request.POST or None)
+    if request.POST and ticketForm.is_valid():
+        newTicket = Ticket()
+        newTicket.title = ticketForm.cleaned_data['title']
+        newTicket.body = ticketForm.cleaned_data['body']
+        try:
+            newTicket.save()
+            return HttpResponse(serializers.serialize('json', [newTicket,]))
+        except:
+            return HttpResponseServerError("Could not save ticket at this time")
+    else:
+        return HttpResponseBadRequest("Invalid Form Data!")
+
+
+@login_required
+def api_v1_ticket_archive(request, ticket_id):
+    '''Archive a ticket'''
+    ticket = Ticket.objects.get(pk=ticket_id)
+    ticket.archived = True
+    try:
+        ticket.save()
+        return HttpResponse("Ticket Archived")
+    except:
+        return HttpResponseServerError("Ticket could not be archived at this time")
+
+
+@login_required
+def api_v1_ticket_unarchive(request, ticket_id):
+    '''Archive a ticket'''
+    ticket = Ticket.objects.get(pk=ticket_id)
+    ticket.archived = False
+    try:
+        ticket.save()
+        return HttpResponse("Ticket Unarchived")
+    except:
+        return HttpResponseServerError("Ticket could not be unarchived at this time")
+
+
+@login_required
+def api_v1_ticket_info(request, ticket_id):
+    '''Retrieve ticket title, timestamp, and status'''
+    try:
+        ticket = Ticket.objects.get(pk=ticket_id)
+        response = json.dumps({
+            "title" : ticket.title,
+            "timestamp" : ticket.timestamp, 
+            "status" : ticket.status,
+        })
+        return HttpResponse(response)
+    except:
+        return HttpResponseNotFound("No ticket with given ID found")
+
 
 
 # -----------------------------------------------------------------------------

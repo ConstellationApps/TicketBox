@@ -23,6 +23,4 @@ class TicketForm(ModelForm):
 
     class Meta:
         model = Ticket
-        fields = ['owner', 'anonymous', 'body', 'status', 
-                  'box']
-                
+        fields = ['title', 'body']

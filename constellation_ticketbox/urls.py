@@ -14,6 +14,9 @@ urlpatterns = [
     url(r'^view/box/(?P<box_id>\d+)$', 
         views.view_box,
         name="view_box"),
+    url(r'^view/ticket/(?P<ticket_id>\d+)$', 
+        views.view_ticket,
+        name="view_ticket"),
 
 # =============================================================================
 # Management Routes
@@ -53,6 +56,26 @@ urlpatterns = [
     url(r'^api/v1/box/(?P<box_id>\d+)/info$', 
         views.api_v1_box_info,
         name="api_v1_box_info"),
+
+# -----------------------------------------------------------------------------
+# API Routes related to Ticket Operations
+# -----------------------------------------------------------------------------
+
+    url(r'^api/v1/ticket/(?P<ticket_id>\d+)/info$', 
+        views.api_v1_ticket_info,
+        name="api_v1_ticket_info"),
+    url(r'^api/v1/ticket/list$', 
+        views.api_v1_ticket_list,
+        name="api_v1_ticket_list"),
+    url(r'^api/v1/ticket/create$', 
+        views.api_v1_ticket_create, 
+        name="api_v1_ticket_create"),
+    url(r'^api/v1/ticket/(?P<ticket_id>\d+)/archive$', 
+        views.api_v1_ticket_archive,
+        name="api_v1_ticket_archive"),
+    url(r'^api/v1/ticket/(?P<ticket_id>\d+)/unarchive$', 
+        views.api_v1_ticket_unarchive,
+        name="api_v1_ticket_unarchive"),
 
 
 # -----------------------------------------------------------------------------
