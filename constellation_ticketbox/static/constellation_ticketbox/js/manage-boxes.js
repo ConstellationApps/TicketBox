@@ -14,7 +14,7 @@ $(document).ready(function(){
   getBox_data();
 });
 
-/* Call APIs to get the JSON Box_data */
+/* Call APIs to get the JSON boxes_data */
 function getBox_data() {
   boxes_data = { active_boxes: [], inactive_boxes: [] };
   $.getJSON(url_api_v1_box_list, function(boxes){

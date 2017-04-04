@@ -24,7 +24,6 @@
   <div class="mdl-card__supporting-text mdl-grid">
     <form method="post" action="{% url 'api_v1_box_update' box_id %}" id="editBoxForm" class="mdl-cell--12-col">
       {% csrf_token %}
-      {{ form.active.as_hidden }}
       <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label mdl-cell--12-col mdl-cell--bottom">
         {{ form.name }}
         <label class="mdl-textfield__label" for="{{ form.name.id_for_label }}">Name</label>
@@ -41,10 +40,8 @@
             <div class="mdl-tooltip" for="perm-none">No Permissions</div>
             <i id="perm-add" class="material-icons perm-icon">add_box</i>
             <div class="mdl-tooltip" for="perm-add">Add Tickets</div>
-            <i id="perm-view" class="material-icons perm-icon">visibility</i>
-            <div class="mdl-tooltip" for="perm-view">View Box Tickets</div>
             <i id="perm-reply" class="material-icons perm-icon">forum</i>
-            <div class="mdl-tooltip" for="perm-reply">Reply to Tickets</div>
+            <div class="mdl-tooltip" for="perm-reply">View Tickets</div>
             <i id="perm-manage" class="material-icons perm-icon">mode_edit</i>
             <div class="mdl-tooltip" for="perm-manage">Manage Tickets</div>
             <i id="perm-edit" class="material-icons perm-icon">settings</i>
@@ -54,7 +51,7 @@
         <li class="mdl-list__item">
           <span id="group-{{ group.id }}" class="mdl-cell--4-col">{{ group.name }}</span>
           <span class="mdl-cell--12-col">
-            <input id="slider-{{ group.id }}" name="group-{{ group.id }}" class="mdl-slider mdl-js-slider group-permission" type="range" min="1" max="6" steps="1" value="{{ group.level }}">
+            <input id="slider-{{ group.id }}" name="group-{{ group.id }}" class="mdl-slider mdl-js-slider group-permission" type="range" min="1" max="5" steps="1" value="{{ group.level }}">
           </span>
         </li>
         {% endfor %}

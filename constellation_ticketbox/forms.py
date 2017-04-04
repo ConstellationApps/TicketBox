@@ -23,4 +23,15 @@ class TicketForm(ModelForm):
 
     class Meta:
         model = Ticket
-        fields = ['title', 'body']
+        fields = ['title', 'body', 'anonymous']
+
+class ReplyForm(ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(ReplyForm, self).__init__(*args, **kwargs)
+        for field_name, field in self.fields.items():
+            field.widget.attrs['class'] = 'mdl-textfield__input'
+            field.widget.attrs['rows'] = 3
+
+    class Meta:
+        model = Ticket
+        fields = ['body']

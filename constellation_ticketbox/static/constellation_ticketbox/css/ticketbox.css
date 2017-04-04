@@ -22,3 +22,16 @@
     margin-right: 0;
 }
 
+
+.fixed-action-btn {
+    bottom: 45px;
+    position: fixed;
+    right: 45px;
+    z-index: 99;
+}
+
+.body {
+  	word-break: break-all;
+  	word-wrap: break-word;
+}
+

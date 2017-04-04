@@ -1,6 +1,7 @@
 import json
 
 from django.contrib.auth.models import Group
+from django.contrib.auth.models import User
 from django.shortcuts import render
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
@@ -24,6 +25,7 @@ from .models import Reply
 
 from .forms import BoxForm
 from .forms import TicketForm
+from .forms import ReplyForm
 
 # =============================================================================
 # View Functions
@@ -49,28 +51,30 @@ def view_box(request, box_id):
     box with all visible tickets'''
     template_settings_object = GlobalTemplateSettings(allowBackground=False)
     template_settings = template_settings_object.settings_dict()
-    newForm = TicketForm()
-    editForm = TicketForm(prefix="edit")
+    ticketForm = TicketForm()
     box = Box.objects.get(pk=box_id)
 
     return render(request, 'constellation_ticketbox/box.html', {
-        'form': newForm,
-        'editForm': editForm,
+        'form': ticketForm,
         'id': box_id,
         'template_settings': template_settings,
         'box': box,
+        'user_id' : request.user.id
     })
 
 
 @login_required
+# add permissions
 def view_ticket(request, ticket_id):
     '''Return the base template that will call the API to display the
     ticket with all replies'''
     template_settings_object = GlobalTemplateSettings(allowBackground=False)
     template_settings = template_settings_object.settings_dict()
     ticket = Ticket.objects.get(pk=ticket_id)
+    replyForm = ReplyForm()
 
     return render(request, 'constellation_ticketbox/ticket.html', {
+        'form' : replyForm,
         'id': ticket_id,
         'template_settings': template_settings,
         'ticket': ticket,
@@ -204,34 +208,51 @@ def api_v1_box_unarchive(request, box_id):
 
 
 @login_required
-@permission_required('constellation_ticketbox.action_add_tickets',
+@permission_required('constellation_ticketbox.action_read_box',
                      (Box, 'id', 'box_id'))
-def api_v1_box_info(request, box_id):
-    '''Retrieve box title and description'''
-    try:
-        box = Box.objects.get(pk=box_id)
-        response = json.dumps({"title" : box.name, "desc" : box.desc})
-        return HttpResponse(response)
-    except:
-        return HttpResponseNotFound("No box with given ID found")
+def api_v1_box_open_tickets(request, box_id):
+    '''Retrieve all unarchived tickets for box'''
+    ticketObjects = Ticket.objects.filter(box=Box.objects.get(pk=box_id),
+                                      archived=False)
+    if ticketObjects:
+        tickets = serializers.serialize('json', ticketObjects)
+        return HttpResponse(tickets)
+    else:
+        return HttpResponseNotFound("There are no open tickets in this box.")
+
+
+@login_required
+# add permissions
+def api_v1_box_closed_tickets(request, box_id):
+    '''Retrieve all unarchived tickets for the box'''
+    ticketObjects = Ticket.objects.filter(box=Box.objects.get(pk=box_id),
+                                      archived=True)
+    if ticketObjects:
+        tickets = serializers.serialize('json', ticketObjects)
+        return HttpResponse(tickets)
+    else:
+        return HttpResponseNotFound("There are no closed tickets in this box.")
 
 # -----------------------------------------------------------------------------
 # API Functions related to Ticket Operations
 # -----------------------------------------------------------------------------
 
 @login_required
-def api_v1_ticket_list(request):
-    '''List all tickets that a user is allowed to view'''
-
-
-@login_required
-def api_v1_ticket_create(request):
+# add permissions
+# this is extremely broken.
+def api_v1_ticket_create(request, box_id):
     '''Create a ticket'''
     ticketForm = TicketForm(request.POST or None)
     if request.POST and ticketForm.is_valid():
         newTicket = Ticket()
         newTicket.title = ticketForm.cleaned_data['title']
         newTicket.body = ticketForm.cleaned_data['body']
+        newTicket.box = get_object_or_404(Box, pk=box_id)
+        newTicket.owner = request.user
+        newTicket.anonymous = ticketForm.cleaned_data['anonymous']
+        if (newTicket.anonymous == False):
+            newTicket.author = request.user.username
+        newTicket.status = 'Open'
         try:
             newTicket.save()
             return HttpResponse(serializers.serialize('json', [newTicket,]))
@@ -242,6 +263,7 @@ def api_v1_ticket_create(request):
 
 
 @login_required
+# add permissions
 def api_v1_ticket_archive(request, ticket_id):
     '''Archive a ticket'''
     ticket = Ticket.objects.get(pk=ticket_id)
@@ -254,6 +276,7 @@ def api_v1_ticket_archive(request, ticket_id):
 
 
 @login_required
+# add permissions
 def api_v1_ticket_unarchive(request, ticket_id):
     '''Archive a ticket'''
     ticket = Ticket.objects.get(pk=ticket_id)
@@ -264,22 +287,40 @@ def api_v1_ticket_unarchive(request, ticket_id):
     except:
         return HttpResponseServerError("Ticket could not be unarchived at this time")
 
+@login_required
+# add permissions
+def api_v1_ticket_replies(request, ticket_id):
+    ''''Retrieve all replies for a ticket'''
+    replyObjects = Reply.objects.filter(ticket=Ticket.objects.get(pk=ticket_id))
+    if replyObjects:
+        replies = serializers.serialize('json', replyObjects)
+        return HttpResponse(replies)
+    else:
+        return HttpResponseNotFound("There are no replies to this ticket.")
+
+# -----------------------------------------------------------------------------
+# API Functions related to Reply Operations
+# -----------------------------------------------------------------------------
 
 @login_required
-def api_v1_ticket_info(request, ticket_id):
-    '''Retrieve ticket title, timestamp, and status'''
-    try:
-        ticket = Ticket.objects.get(pk=ticket_id)
-        response = json.dumps({
-            "title" : ticket.title,
-            "timestamp" : ticket.timestamp, 
-            "status" : ticket.status,
-        })
-        return HttpResponse(response)
-    except:
-        return HttpResponseNotFound("No ticket with given ID found")
-
-
+# add permissions
+def api_v1_reply_create(request, ticket_id):
+    '''Create a reply for a ticket'''
+    replyForm = ReplyForm(request.POST or None)
+    if request.POST and replyForm.is_valid():
+        newReply = Reply()
+        newReply.body = replyForm.cleaned_data['body']
+        newReply.owner = request.user
+        newReply.author = request.user.username
+        newReply.ticket = get_object_or_404(Ticket, pk=ticket_id)
+        try:
+            newReply.save()
+            return HttpResponse(serializers.serialize('json', [newReply,]))
+        except:
+            return HttpResponseServerError("Could not save reply at this time")
+    else:
+        return HttpResponseBadRequest("Invalid Form Data!")
+    
 
 # -----------------------------------------------------------------------------
 # Dashboard

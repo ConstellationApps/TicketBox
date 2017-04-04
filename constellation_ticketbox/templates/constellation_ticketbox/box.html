@@ -19,22 +19,41 @@
 <script src="{% static 'constellation_ticketbox/js/box.js' %}"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.5/handlebars.min.js"></script>
 <script>
-    var url_api_v1_ticket_list = "{% url 'api_v1_ticket_list' %}"
+    var box_id = "{{ id }}"
+    var url_api_v1_box_open_tickets = "{% url 'api_v1_box_open_tickets' id %}"
     var url_view_ticket = "{% url 'view_ticket' 0 %}"
+    var user_id = "{{ user_id }}"
 </script>
 {% endblock %}
 
 {% block content %}
 <div id="ticketsCard" class="mdl-card mdl-cell--8-col mdl-cell--2-offset-desktop mdl-shadow--2dp mdl-grid">
     {% verbatim %}
-    <script id="handlebars-box" type="text/x-handlebars-template">
+    <script id="handlebars-tickets" type="text/x-handlebars-template">
         <div class="mdl-card__title">
             <h2 class="mdl-card__title-text">Tickets</h2>
         </div>
         <div class="mdl-card__supporting-text">
             <div class="mdl-list">
-            {{#if active_tickets}}
-            {{#each active_tickets}}
+            {{#each tickets}}
+                <div class="mdl-list__item">
+                    <span class="mdl-list__item-primary-content">
+                        <a href="{{url}}">{{title}}</a>
+                    </span>
+                    <span class="mdl-list__item-secondary-content">
+                        {{status}}
+                    </span>
+                    <span class="mdl-list__item-secondary-content">
+                        {{timestamp}}
+                    </span>
+                </div>
+            {{/each}}
+            </div>
+            <hr/>
+            <h5>Your Tickets</h5>
+            <div class="mdl-list">
+            {{#if user_tickets}}
+            {{#each user_tickets}}
                 <div class="mdl-list__item">
                     <span class="mdl-list__item-primary-content">
                         <a href="{{url}}">{{title}}</a>
@@ -48,10 +67,9 @@
                 </div>
             {{/each}}
             {{else}}
-                No active tickets yet -- add one below!
+                You have no tickets yet -- add one below!
             {{/if}}
             </div>
-            <hr/>
         </div>
     </script>
     {% endverbatim %}
@@ -61,9 +79,8 @@
       <h2 class="mdl-card__title-text">New Ticket</h2>
    </div>
    <div class="mdl-card__supporting-text">
-      <form method="post" action="{% url 'api_v1_ticket_create' %}" id="newTicketForm" class="mdl-cell--12-col">
+      <form method="post" action="{% url 'api_v1_ticket_create' id %}" id="newTicketForm" class="mdl-cell--12-col">
          {% csrf_token %}
-         {{ form.active.as_hidden }}
          <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label mdl-cell--12-col mdl-cell--bottom">
             {{ form.title }}
             <label class="mdl-textfield__label" for="{{ form.title.id_for_label }}">Title</label>
@@ -72,6 +89,12 @@
             {{ form.body }}
             <label class="mdl-textfield__label" for="{{ form.body.id_for_label }}">Body</label>
          </div>
+         <div class="mdl-checkbox ">
+            {{ form.anonymous }}
+            <label class="mdl-checkbox__label" for="{{ form.anonymous.id_for_label }}">Anonymous</label>
+         </div>
+         <br></br>
+         <div class="mdl-layout-spacer"></div>
             <div class="mdl-card__actions">
                <div class="mdl-layout-spacer"></div>
                <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--primary">
