@@ -20,11 +20,12 @@ function getTicket_data() {
   $.getJSON(url_api_v1_box_open_tickets, function(tickets){
     for (var i = 0, len = tickets.length; i < len; i++) {
       if (tickets[i].fields.owner == user_id) {
-          tickets_data.user_tickets.push({
+        tickets_data.user_tickets.push({
           title: tickets[i].fields.title,
           timestamp: tickets[i].fields.timestamp,
           status: tickets[i].fields.status,
           id: tickets[i].pk,
+          owner: tickets[i].owner,
           url: url_view_ticket.replace(0, tickets[i].pk)
         });
       } else if(tickets[i].fields.archived == false) {
@@ -33,6 +34,7 @@ function getTicket_data() {
           timestamp: tickets[i].fields.timestamp,
           status: tickets[i].fields.status,
           id: tickets[i].pk,
+          owner: tickets[i].owner,
           url: url_view_ticket.replace(0, tickets[i].pk)
         });
       }

@@ -28,61 +28,13 @@ class Ticket(models.Model):
     archived = models.BooleanField(default=False)
     box = models.ForeignKey('Box', blank=True, null=True)
 
-    def set_ticket_permissions(self, groups): 
-        permcodenames = []
-        for node in Ticket._meta.permissions:
-            permcodenames.append(node[0])
-
-        for groupname, level in groups:
-            if groupname.startswith('group-'):
-                group = groupname.replace('group-', '', 1)
-                group = Group.objects.get(pk=group)
-                level = int(level) - 1
-
-                if level == 0:
-                    for perm in permcodenames:
-                        remove_perm(perm, group, self)
-                else:
-                    for perm in permcodenames[:level]:
-                        assign_perm(perm, group, self)
-                    for perm in permcodenames[level:]:
-                        remove_perm(perm, group, self)
-
-    def get_ticket_permissions(self):
-        groups = []
-        permcodenames = []
-        for node in Ticket._meta.permissions:
-            permcodenames.append(node[0])
-
-        for group in Group.objects.all():
-            level = len(set(
-                get_perms(group, self)).intersection(set(permcodenames))) + 1
-
-            groups.append({
-                'name': group.name,
-                'id': group.id,
-                'level': level
-            })
-
-        return groups
-
-    class Meta:
-        permissions = (
-            ("action_view_ticket", "Can view ticket"),
-            ("action_manage_ticket", "Can manage a ticket"),
-        )
-
-
-
-
-
 
 class Box(models.Model):
     name = models.CharField(max_length=128)
     desc = models.TextField()
     archived = models.BooleanField(default=False)
 
-    def set_box_permissions(self, groups): 
+    def set_box_permissions(self, groups):
         permcodenames = []
         for node in Box._meta.permissions:
             permcodenames.append(node[0])

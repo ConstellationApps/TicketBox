@@ -16,7 +16,7 @@ urlpatterns = [
         views.view_box,
         name="view_box"),
 
-    url(r'^view/ticket/(?P<ticket_id>\d+)$', 
+    url(r'^view/box/(?P<box_id>\d+)/ticket/(?P<ticket_id>\d+)$', 
         views.view_ticket,
         name="view_ticket"),
 

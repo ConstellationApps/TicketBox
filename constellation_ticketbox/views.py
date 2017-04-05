@@ -15,7 +15,7 @@ from django.contrib.auth.decorators import login_required
 from guardian.decorators import (
     permission_required,
 )
-from guardian.shortcuts import get_objects_for_user
+from guardian.shortcuts import get_objects_for_user, assign_perm, get_perms
 
 from constellation_base.models import GlobalTemplateSettings
 
@@ -64,21 +64,31 @@ def view_box(request, box_id):
 
 
 @login_required
-# add permissions
-def view_ticket(request, ticket_id):
+@permission_required('constellation_ticketbox.action_add_tickets',
+                     (Box, 'id', 'box_id'))
+def view_ticket(request, box_id, ticket_id):
     '''Return the base template that will call the API to display the
     ticket with all replies'''
-    template_settings_object = GlobalTemplateSettings(allowBackground=False)
-    template_settings = template_settings_object.settings_dict()
+    # check permissions by user and group
+    box = get_object_or_404(Box, pk=box_id)
     ticket = Ticket.objects.get(pk=ticket_id)
-    replyForm = ReplyForm()
+    box_perms = get_perms(request.user, box)
 
-    return render(request, 'constellation_ticketbox/ticket.html', {
-        'form' : replyForm,
-        'id': ticket_id,
-        'template_settings': template_settings,
-        'ticket': ticket,
-    })
+    if ((ticket.owner == request.user) or ('action_read_box' in box_perms)):
+
+        template_settings_object = GlobalTemplateSettings(allowBackground=False)
+        template_settings = template_settings_object.settings_dict()
+        replyForm = ReplyForm()
+
+        return render(request, 'constellation_ticketbox/ticket.html', {
+            'form' : replyForm,
+            'id': ticket_id,
+            'template_settings': template_settings,
+            'ticket': ticket,
+            'box': box,
+        })
+    else:
+        return HttpResponseNotFound("You do not have permissions for this ticket.")
 
 
 # =============================================================================
@@ -208,12 +218,12 @@ def api_v1_box_unarchive(request, box_id):
 
 
 @login_required
-@permission_required('constellation_ticketbox.action_read_box',
+@permission_required('constellation_ticketbox.action_add_tickets',
                      (Box, 'id', 'box_id'))
 def api_v1_box_open_tickets(request, box_id):
-    '''Retrieve all unarchived tickets for box'''
+    '''Retrieve all unarchived tickets that user can view for box'''
     ticketObjects = Ticket.objects.filter(box=Box.objects.get(pk=box_id),
-                                      archived=False)
+                    archived=False)
     if ticketObjects:
         tickets = serializers.serialize('json', ticketObjects)
         return HttpResponse(tickets)
@@ -221,12 +231,16 @@ def api_v1_box_open_tickets(request, box_id):
         return HttpResponseNotFound("There are no open tickets in this box.")
 
 
+# TODO have link to list of archived tickets?
 @login_required
-# add permissions
+@permission_required('constellation_ticketbox.action_add_tickets',
+                     (Box, 'id', 'box_id'))
 def api_v1_box_closed_tickets(request, box_id):
-    '''Retrieve all unarchived tickets for the box'''
-    ticketObjects = Ticket.objects.filter(box=Box.objects.get(pk=box_id),
-                                      archived=True)
+    '''Retrieve all archived tickets that user can view for box'''
+    ticketObjects = get_objects_for_user(request.user, 
+                    'constellation_ticketbox.action_view_ticket',
+                    Ticket).filter(box=Box.objects.get(pk=box_id),
+                    archived=True)
     if ticketObjects:
         tickets = serializers.serialize('json', ticketObjects)
         return HttpResponse(tickets)
@@ -238,8 +252,8 @@ def api_v1_box_closed_tickets(request, box_id):
 # -----------------------------------------------------------------------------
 
 @login_required
-# add permissions
-# this is extremely broken.
+@permission_required('constellation_ticketbox.action_add_tickets',
+                     (Box, 'id', 'box_id'))
 def api_v1_ticket_create(request, box_id):
     '''Create a ticket'''
     ticketForm = TicketForm(request.POST or None)
@@ -253,11 +267,23 @@ def api_v1_ticket_create(request, box_id):
         if (newTicket.anonymous == False):
             newTicket.author = request.user.username
         newTicket.status = 'Open'
+
         try:
             newTicket.save()
+            # set permissions based on ownership, box groups
+            assign_perm('action_view_ticket', request.user, newTicket)
+            thisBox = get_object_or_404(Box, pk=box_id)
+            groups = Group.objects.all()
+            for group in groups:
+                box_perms = get_perms(group, thisBox)
+                if ('action_manage_tickets' in box_perms):
+                    assign_perm('action_manage_ticket', group, newTicket)
+                if ('action_read_box' in box_perms):
+                    assign_perm('action_view_ticket', group, newTicket)
+
             return HttpResponse(serializers.serialize('json', [newTicket,]))
         except:
-            return HttpResponseServerError("Could not save ticket at this time")
+            return HttpResponseServerError("Ticket could not be saved at this time")
     else:
         return HttpResponseBadRequest("Invalid Form Data!")
 
@@ -286,6 +312,7 @@ def api_v1_ticket_unarchive(request, ticket_id):
         return HttpResponse("Ticket Unarchived")
     except:
         return HttpResponseServerError("Ticket could not be unarchived at this time")
+
 
 @login_required
 # add permissions
