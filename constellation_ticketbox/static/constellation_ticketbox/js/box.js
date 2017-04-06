@@ -27,7 +27,7 @@ function getTicket_data() {
           id: tickets[i].pk,
           owner: tickets[i].owner,
           author: tickets[i].author,
-          url: url_view_ticket.replace(0, tickets[i].pk)
+          url: url_view_ticket.replace(new RegExp('0' + '$'), tickets[i].pk)
         });
       } else if(tickets[i].fields.archived == false) {
         tickets_data.tickets.push({
@@ -37,7 +37,8 @@ function getTicket_data() {
           id: tickets[i].pk,
           owner: tickets[i].owner,
           author: tickets[i].author,
-          url: url_view_ticket.replace(0, tickets[i].pk)
+
+          url: url_view_ticket.replace(new RegExp('0' + '$'), tickets[i].pk)
         });
       }
     }
@@ -72,6 +73,7 @@ function addItem(event) {
     ticket.title = response.fields.title;
     ticket.timestamp = response.fields.timestamp;
     ticket.status = response.fields.status;
+    ticket.url = url_view_ticket.replace(new RegExp('0' + '$'), tickets[i].pk);
     ticket.url = url_view_ticket.replace(0, response.pk);
     tickets_data.user_tickets.push(ticket);
     renderTemplate(tickets_data);

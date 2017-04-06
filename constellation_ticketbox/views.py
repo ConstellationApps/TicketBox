@@ -327,14 +327,18 @@ def api_v1_ticket_update_status(request, box_id, ticket_id):
         ticket = Ticket.objects.get(pk=ticket_id)
         box_perms = get_perms(request.user, box)
 
-        if ((ticket.owner == request.user) or ('action_read_box' in box_perms)):
+        if ((ticket.owner == request.user) or ('action_manage_tickets' in box_perms)):
             try:
                 ticket = Ticket.objects.get(pk=ticket_id)
                 newStatus = ticketForm.cleaned_data['status']
                 # prevent duplicate status changes
                 if (newStatus == ticket.status):
                     return redirect(reverse("view_ticket", args=[box_id, ticket_id,]))
-                    
+
+                # prevent owners from re-opening their own tickets
+                if (ticket.owner == request.user and ticket.archived == True):
+                    return redirect(reverse("view_ticket", args=[box_id, ticket_id,]))
+
                 if (newStatus == 'Closed'):
                     ticket.archived = True
                 else:
@@ -346,7 +350,7 @@ def api_v1_ticket_update_status(request, box_id, ticket_id):
                 newReply.ticket = ticket
                 newReply.owner = request.user
                 # preserve anonymity
-                if (ticket.anonymous == True):
+                if (ticket.anonymous == True and ticket.owner == request.user):
                     newReply.author = 'Anonymous'
                 else: 
                     newReply.author = request.user.username                
