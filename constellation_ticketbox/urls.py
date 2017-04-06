@@ -20,7 +20,7 @@ urlpatterns = [
         views.view_box_archive,
         name="view_box_archive"),
 
-    url(r'^view/box/(?P<box_id>\d+)/ticket/(?P<ticket_id>\d+)$', 
+    url(r'^view/ticket/(?P<ticket_id>\d+)$', 
         views.view_ticket,
         name="view_ticket"),
 
@@ -80,11 +80,11 @@ urlpatterns = [
         views.api_v1_ticket_create, 
         name="api_v1_ticket_create"),
 
-    url(r'^api/v1/box/(?P<box_id>\d+)/ticket/(?P<ticket_id>\d+)/replies$', 
+    url(r'^api/v1/ticket/(?P<ticket_id>\d+)/replies$', 
         views.api_v1_ticket_replies,
         name="api_v1_ticket_replies"),
 
-    url(r'^api/v1/box/(?P<box_id>\d+)/ticket/(?P<ticket_id>\d+)/update-status$',
+    url(r'^api/v1/ticket/(?P<ticket_id>\d+)/update-status$',
         views.api_v1_ticket_update_status,
         name="api_v1_ticket_update_status"),
 
@@ -92,7 +92,7 @@ urlpatterns = [
 # API Routes related to Reply Operations
 # -----------------------------------------------------------------------------
     
-    url(r'^api/v1/box/(?P<box_id>\d+)/ticket/(?P<ticket_id>\d+)/reply/create$',
+    url(r'^api/v1/ticket/(?P<ticket_id>\d+)/reply/create$',
         views.api_v1_reply_create,
         name="api_v1_reply_create"),
 

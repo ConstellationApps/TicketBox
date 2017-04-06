@@ -20,8 +20,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.5/handlebars.min.js"></script>
 <script>
     var ticket_id = "{{ id }}"
-    var box_id = "{{ box_id }}"
-    var url_api_v1_ticket_replies = "{% url 'api_v1_ticket_replies' box_id id %}"
+    var url_api_v1_ticket_replies = "{% url 'api_v1_ticket_replies' id %}"
 </script>
 {% endblock %}
 
@@ -57,7 +56,7 @@
         </div>
       </div>
       {% if "action_manage_tickets" in box_perms or "owner" in ticket_perms %}
-      <form method="post" action="{% url 'api_v1_ticket_update_status' box_id id %}" id="updateForm" class="mdl-cell--8-col">
+      <form method="post" action="{% url 'api_v1_ticket_update_status' id %}" id="updateForm" class="mdl-cell--8-col">
         {% csrf_token %}
           {{ status_form.title.as_hidden}}
           {{ status_form.body.as_hidden}}
@@ -107,7 +106,7 @@
       <h2 class="mdl-card__title-text">New Reply</h2>
    </div>
    <div class="mdl-card__supporting-text">
-      <form method="post" action="{% url 'api_v1_reply_create' box_id id %}" id="newReplyForm" class="mdl-cell--12-col">
+      <form method="post" action="{% url 'api_v1_reply_create' id %}" id="newReplyForm" class="mdl-cell--12-col">
          {% csrf_token %}
          <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label mdl-cell--12-col mdl-cell--bottom">
             {{ form.body }}

@@ -82,14 +82,12 @@ def view_box_archive(request, box_id):
 
 
 @login_required
-@permission_required('constellation_ticketbox.action_add_tickets',
-                     (Box, 'id', 'box_id'))
-def view_ticket(request, box_id, ticket_id):
+def view_ticket(request, ticket_id):
     '''Return the base template that will call the API to display the
     ticket with all replies'''
     # check permissions by user and group
-    box = get_object_or_404(Box, pk=box_id)
     ticket = Ticket.objects.get(pk=ticket_id)
+    box = ticket.box
     box_perms = get_perms(request.user, box)
 
     if ((ticket.owner == request.user) or ('action_read_box' in box_perms)):
@@ -106,7 +104,6 @@ def view_ticket(request, box_id, ticket_id):
             'template_settings': template_settings,
             'ticket': ticket,
             'box': box,
-            'box_id': box_id,
         })
     else:
         return HttpResponseNotFound("You do not have permissions for this ticket.")
@@ -296,12 +293,10 @@ def api_v1_ticket_create(request, box_id):
         return HttpResponseBadRequest("Invalid Form Data!")
 
 @login_required
-@permission_required('constellation_ticketbox.action_add_tickets',
-                     (Box, 'id', 'box_id'))
-def api_v1_ticket_replies(request, box_id, ticket_id):
+def api_v1_ticket_replies(request, ticket_id):
     ''''Retrieve all replies for a ticket'''
-    box = get_object_or_404(Box, pk=box_id)
     ticket = Ticket.objects.get(pk=ticket_id)
+    box = ticket.box
     box_perms = get_perms(request.user, box)
 
     if ((ticket.owner == request.user) or ('action_read_box' in box_perms)):
@@ -317,14 +312,12 @@ def api_v1_ticket_replies(request, box_id, ticket_id):
 
 
 @login_required
-@permission_required('constellation_ticketbox.action_add_tickets',
-                     (Box, 'id', 'box_id'))
-def api_v1_ticket_update_status(request, box_id, ticket_id):
+def api_v1_ticket_update_status(request, ticket_id):
     '''Update a ticket's status'''
     ticketForm = TicketForm(request.POST or None)
     if request.POST and ticketForm.is_valid():
-        box = get_object_or_404(Box, pk=box_id)
         ticket = Ticket.objects.get(pk=ticket_id)
+        box = ticket.box
         box_perms = get_perms(request.user, box)
 
         if ((ticket.owner == request.user) or ('action_manage_tickets' in box_perms)):
@@ -333,11 +326,11 @@ def api_v1_ticket_update_status(request, box_id, ticket_id):
                 newStatus = ticketForm.cleaned_data['status']
                 # prevent duplicate status changes
                 if (newStatus == ticket.status):
-                    return redirect(reverse("view_ticket", args=[box_id, ticket_id,]))
+                    return redirect(reverse("view_ticket", args=[ticket_id,]))
 
                 # prevent owners from re-opening their own tickets
                 if (ticket.owner == request.user and ticket.archived == True):
-                    return redirect(reverse("view_ticket", args=[box_id, ticket_id,]))
+                    return redirect(reverse("view_ticket", args=[ticket_id,]))
 
                 if (newStatus == 'Closed'):
                     ticket.archived = True
@@ -356,7 +349,7 @@ def api_v1_ticket_update_status(request, box_id, ticket_id):
                     newReply.author = request.user.username                
                 newReply.body = 'Ticket status has been set to \'' + newStatus + '\'.'
                 newReply.save()
-                return redirect(reverse("view_ticket", args=[box_id, ticket_id,]))
+                return redirect(reverse("view_ticket", args=[ticket_id,]))
             except AttributeError:
                 return HttpResponseServerError("Invalid Ticket ID!")
         else: 
@@ -371,13 +364,11 @@ def api_v1_ticket_update_status(request, box_id, ticket_id):
 # -----------------------------------------------------------------------------
 
 @login_required
-@permission_required('constellation_ticketbox.action_add_tickets',
-                     (Box, 'id', 'box_id'))
-def api_v1_reply_create(request, box_id, ticket_id):
+def api_v1_reply_create(request, ticket_id):
     '''Create a reply for a ticket'''
 
-    box = get_object_or_404(Box, pk=box_id)
     ticket = Ticket.objects.get(pk=ticket_id)
+    box = ticket.box
     box_perms = get_perms(request.user, box)
 
     if ((ticket.owner == request.user) or ('action_read_box' in box_perms)):

@@ -26,7 +26,7 @@ function getTicket_data() {
           id: tickets[i].pk,
           owner: tickets[i].owner,
           author: tickets[i].author,
-          url: url_view_ticket.replace(0, tickets[i].pk)
+          url: url_view_ticket.replace(new RegExp('0' + '$'), tickets[i].pk)
         });
       } else if(tickets[i].fields.archived == true) {
         tickets_data.tickets.push({
@@ -36,7 +36,7 @@ function getTicket_data() {
           id: tickets[i].pk,
           owner: tickets[i].owner,
           author: tickets[i].author,
-          url: url_view_ticket.replace(0, tickets[i].pk)
+          url: url_view_ticket.replace(new RegExp('0' + '$'), tickets[i].pk)
         });
       }
     }
