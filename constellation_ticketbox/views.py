@@ -384,7 +384,7 @@ def api_v1_reply_create(request, box_id, ticket_id):
             newReply.owner = request.user
 
             # preserve anonymity
-            if (ticket.anonymous == True):
+            if (ticket.anonymous == True and request.user == ticket.owner):
                 newReply.author = 'Anonymous'
             else: 
                 newReply.author = request.user.username
