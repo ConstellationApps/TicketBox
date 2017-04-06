@@ -23,7 +23,7 @@ class TicketForm(ModelForm):
 
     class Meta:
         model = Ticket
-        fields = ['title', 'body', 'anonymous']
+        fields = ['title', 'body', 'anonymous', 'status',]
 
 class ReplyForm(ModelForm):
     def __init__(self, *args, **kwargs):

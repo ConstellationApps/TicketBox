@@ -1,0 +1,125 @@
+{% extends "constellation_base/base.html" %}
+
+{% block title %}Ticket Box | View Ticket{% endblock %}
+{% block heading %}Ticket Box | View Ticket{% endblock %}
+
+{% block head %}
+{{ block.super }}
+{% load static %}
+<link rel="stylesheet" href="{% static 'constellation_ticketbox/css/ticketbox.css' %}">
+{% endblock %}
+
+{% block js %}
+<div id="message-toast" class="mdl-js-snackbar mdl-snackbar">
+  <div class="mdl-snackbar__text"></div>
+  <button class="mdl-snackbar__action" type="button"></button>
+</div>
+{{ block.super }}
+{% load static %}
+<script src="{% static 'constellation_ticketbox/js/ticket.js' %}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.5/handlebars.min.js"></script>
+<script>
+    var ticket_id = "{{ id }}"
+    var box_id = "{{ box_id }}"
+    var url_api_v1_ticket_replies = "{% url 'api_v1_ticket_replies' id %}"
+</script>
+{% endblock %}
+
+{% block content %}
+{% load guardian_tags %}
+{% get_obj_perms request.user for box as "box_perms" %}
+{% get_obj_perms request.user for ticket as "ticket_perms" %}
+<div id="ticketCard" class="mdl-card mdl-cell--10-col mdl-cell--1-offset-desktop mdl-shadow--2dp mdl-grid">
+    <div class="mdl-card__title">
+      <h2 class="mdl-card__title-text">{{ ticket.title }}</h2>
+    </div>
+    <div class="mdl-card__supporting-text">
+      <div class="mdl-list">
+      <div class="mdl-list__item">
+        <span class="body mdl-list__item-primary-content">
+          {{ ticket.body }}
+        </span>
+        </div>
+              <div class="mdl-list__item">
+        <span class="mdl-list__item-secondary-content">
+          Author: {{ ticket.author }}
+        </span>
+        </div>
+        <div class="mdl-list__item">
+        <span class="mdl-list__item-secondary-content">
+          Submitted: {{ ticket.timestamp }}
+        </span>
+        </div>
+         <div class="mdl-list__item">
+        <span class="mdl-list__item-secondary-content">
+          Status: {{ ticket.status }}
+        </span>
+        </div>
+      </div>
+      {% if "action_manage_tickets" in box_perms or "owner" in ticket_perms %}
+      <form method="post" action="{% url 'api_v1_ticket_update_status' box_id id %}" id="updateForm" class="mdl-cell--8-col">
+        {% csrf_token %}
+          {{ status_form.title.as_hidden}}
+          {{ status_form.body.as_hidden}}
+          {{ status_form.anonymous.as_hidden}}
+          <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label mdl-cell--8-col mdl-cell--bottom">
+              {{ status_form.status }}
+              <label class="mdl-textfield__label" for="{{ status_form.status.id_for_label }}">Status</label>
+          </div>
+             <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--primary">
+                Update Status <i class="material-icons right">done</i>
+             </button>
+         </form>
+    {% endif %}
+    </div>
+</div>
+<br></br>
+<div id="repliesCard" class="mdl-cell--10-col mdl-cell--2-offset-desktop">
+    {% verbatim %}
+    <script id="handlebars-replies" type="text/x-handlebars-template">
+            {{#if replies}}
+            {{#each replies}}
+              <div class="mdl-card mdl-cell--10-col mdl-cell--0-offset-desktop mdl-shadow--2dp mdl-grid">
+              <div class="mdl-list">
+                <div class="body mdl-list__item">
+                    <span class="mdl-card__title-text ">
+                        {{body}}
+                    </span>
+                </div>
+                <div class="mdl-list__item">
+                    <span class="mdl-card__supporting-text">
+                        Author: {{author}}
+                    </span>
+                </div>
+              </div>
+              </div>
+              <br></br>
+            {{/each}}
+            {{else}}
+                No replies yet -- add one below!
+            {{/if}}
+            </div>
+    </script>
+    {% endverbatim %}
+</div>
+<div id="formCard" class="form-card mdl-card mdl-cell--10-col mdl-cell--1-offset-desktop mdl-shadow--2dp mdl-grid">
+   <div class="mdl-card__title">
+      <h2 class="mdl-card__title-text">New Reply</h2>
+   </div>
+   <div class="mdl-card__supporting-text">
+      <form method="post" action="{% url 'api_v1_reply_create' box_id id %}" id="newReplyForm" class="mdl-cell--12-col">
+         {% csrf_token %}
+         <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label mdl-cell--12-col mdl-cell--bottom">
+            {{ form.body }}
+            <label class="mdl-textfield__label" for="{{ form.body.id_for_label }}">Body</label>
+         </div>
+            <div class="mdl-card__actions">
+               <div class="mdl-layout-spacer"></div>
+               <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--primary">
+                  Create Reply <i class="material-icons right">done</i>
+               </button>
+            </div>
+         </form>
+      </div>
+   </div>
+{% endblock %}

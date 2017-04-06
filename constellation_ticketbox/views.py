@@ -59,7 +59,24 @@ def view_box(request, box_id):
         'id': box_id,
         'template_settings': template_settings,
         'box': box,
-        'user_id' : request.user.id
+        'user_id' : request.user.id,
+    })
+
+@login_required
+@permission_required('constellation_ticketbox.action_add_tickets',
+                     (Box, 'id', 'box_id'))
+def view_box_archive(request, box_id):
+    '''Return the base template that will call the API to display the
+    box with all visible archived tickets for a box'''
+    template_settings_object = GlobalTemplateSettings(allowBackground=False)
+    template_settings = template_settings_object.settings_dict()
+    box = Box.objects.get(pk=box_id)
+
+    return render(request, 'constellation_ticketbox/box-archive.html', {
+        'id': box_id,
+        'template_settings': template_settings,
+        'box': box,
+        'user_id' : request.user.id,
     })
 
 
@@ -79,13 +96,16 @@ def view_ticket(request, box_id, ticket_id):
         template_settings_object = GlobalTemplateSettings(allowBackground=False)
         template_settings = template_settings_object.settings_dict()
         replyForm = ReplyForm()
+        ticketForm = TicketForm(instance=ticket)
 
         return render(request, 'constellation_ticketbox/ticket.html', {
             'form' : replyForm,
+            'status_form' : ticketForm,
             'id': ticket_id,
             'template_settings': template_settings,
             'ticket': ticket,
             'box': box,
+            'box_id': box_id,
         })
     else:
         return HttpResponseNotFound("You do not have permissions for this ticket.")
@@ -237,9 +257,7 @@ def api_v1_box_open_tickets(request, box_id):
                      (Box, 'id', 'box_id'))
 def api_v1_box_closed_tickets(request, box_id):
     '''Retrieve all archived tickets that user can view for box'''
-    ticketObjects = get_objects_for_user(request.user, 
-                    'constellation_ticketbox.action_view_ticket',
-                    Ticket).filter(box=Box.objects.get(pk=box_id),
+    ticketObjects = Ticket.objects.filter(box=Box.objects.get(pk=box_id),
                     archived=True)
     if ticketObjects:
         tickets = serializers.serialize('json', ticketObjects)
@@ -268,22 +286,12 @@ def api_v1_ticket_create(request, box_id):
             newTicket.author = request.user.username
         newTicket.status = 'Open'
 
-        try:
-            newTicket.save()
-            # set permissions based on ownership, box groups
-            assign_perm('action_view_ticket', request.user, newTicket)
-            thisBox = get_object_or_404(Box, pk=box_id)
-            groups = Group.objects.all()
-            for group in groups:
-                box_perms = get_perms(group, thisBox)
-                if ('action_manage_tickets' in box_perms):
-                    assign_perm('action_manage_ticket', group, newTicket)
-                if ('action_read_box' in box_perms):
-                    assign_perm('action_view_ticket', group, newTicket)
 
-            return HttpResponse(serializers.serialize('json', [newTicket,]))
-        except:
-            return HttpResponseServerError("Ticket could not be saved at this time")
+        newTicket.save()
+        # set permissions based on ownership, box groups
+        assign_perm('owner', request.user, newTicket)
+        return HttpResponse(serializers.serialize('json', [newTicket,]))
+
     else:
         return HttpResponseBadRequest("Invalid Form Data!")
 
@@ -325,13 +333,53 @@ def api_v1_ticket_replies(request, ticket_id):
     else:
         return HttpResponseNotFound("There are no replies to this ticket.")
 
+
+@login_required
+@permission_required('constellation_ticketbox.action_add_tickets',
+                     (Box, 'id', 'box_id'))
+def api_v1_ticket_update_status(request, box_id, ticket_id):
+    '''Update a ticket's status'''
+    ticketForm = TicketForm(request.POST or None)
+    if request.POST and ticketForm.is_valid():
+        box = get_object_or_404(Box, pk=box_id)
+        ticket = Ticket.objects.get(pk=ticket_id)
+        box_perms = get_perms(request.user, box)
+
+        if ((ticket.owner == request.user) or ('action_read_box' in box_perms)):
+
+            try:
+                ticket = Ticket.objects.get(pk=ticket_id)
+                newStatus = ticketForm.cleaned_data['status']
+                if (newStatus == 'Closed'):
+                    ticket.archived = True
+                else:
+                    ticket.archived = False
+                ticket.status = ticketForm.cleaned_data['status']
+                ticket.save()
+
+                newReply = Reply()
+                newReply.ticket = ticket
+                newReply.owner = request.user
+                newReply.author = request.user.username
+                newReply.body = 'Ticket status has been set to \'' + newStatus + '\'.'
+                newReply.save()
+                return HttpResponse(serializers.serialize('json', [newReply,]))
+            except AttributeError:
+                return HttpResponseServerError("Invalid Ticket ID!")
+        else: 
+            return HttpResponseBadRequest("You don't have permissions to edit this ticket's status.")
+    else:
+        return HttpResponseBadRequest("Invalid Form Data!")
+
+
+
 # -----------------------------------------------------------------------------
 # API Functions related to Reply Operations
 # -----------------------------------------------------------------------------
 
 @login_required
 # add permissions
-def api_v1_reply_create(request, ticket_id):
+def api_v1_reply_create(request, box_id, ticket_id):
     '''Create a reply for a ticket'''
     replyForm = ReplyForm(request.POST or None)
     if request.POST and replyForm.is_valid():

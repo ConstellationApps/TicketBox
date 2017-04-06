@@ -28,6 +28,11 @@ class Ticket(models.Model):
     archived = models.BooleanField(default=False)
     box = models.ForeignKey('Box', blank=True, null=True)
 
+    class Meta:
+        permissions = (
+            ("owner", "Owns the ticket"),
+        )
+
 
 class Box(models.Model):
     name = models.CharField(max_length=128)

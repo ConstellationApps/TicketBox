@@ -1,7 +1,7 @@
 {% extends "constellation_base/base.html" %}
 
-{% block title %}Ticket Box | View Box{% endblock %}
-{% block heading %}Ticket Box | View Box{% endblock %}
+{% block title %}Ticket Box | View Box Archive{% endblock %}
+{% block heading %}Ticket Box | View Box Archive{% endblock %}
 
 {% block head %}
 {{ block.super }}
@@ -16,11 +16,11 @@
 </div>
 {{ block.super }}
 {% load static %}
-<script src="{% static 'constellation_ticketbox/js/box.js' %}"></script>
+<script src="{% static 'constellation_ticketbox/js/box-archive.js' %}"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.5/handlebars.min.js"></script>
 <script>
     var box_id = "{{ id }}"
-    var url_api_v1_box_open_tickets = "{% url 'api_v1_box_open_tickets' id %}"
+    var url_api_v1_box_closed_tickets = "{% url 'api_v1_box_closed_tickets' id %}"
     var url_view_ticket = "{% url 'view_ticket' id 0 %}"
     var user_id = "{{ user_id }}"
 </script>
@@ -32,7 +32,7 @@
 <div id="ticketsCard" class="mdl-card mdl-cell--8-col mdl-cell--2-offset-desktop mdl-shadow--2dp mdl-grid">
     {% if "action_read_box" in box_perms %}
     {% verbatim %}
-    <script id="handlebars-tickets" type="text/x-handlebars-template">
+    <script id="handlebars-archived" type="text/x-handlebars-template">
         <div class="mdl-card__title">
             <h2 class="mdl-card__title-text">Tickets</h2>
         </div>
@@ -70,7 +70,7 @@
                 </div>
             {{/each}}
             {{else}}
-                You have no tickets yet -- add one below!
+                You have no closed tickets yet.
             {{/if}}
             </div>
         </div>
@@ -78,7 +78,7 @@
     {% endverbatim %}
     {% elif "action_add_tickets" in box_perms %}
     {% verbatim %}
-    <script id="handlebars-tickets" type="text/x-handlebars-template">
+    <script id="handlebars-archived" type="text/x-handlebars-template">
         <div class="mdl-card__title">
             <h2 class="mdl-card__title-text">Your Tickets</h2>
         </div>
@@ -99,7 +99,7 @@
                 </div>
             {{/each}}
             {{else}}
-                You have no open tickets yet -- add one below!
+                You have no closed tickets yet.
             {{/if}}
             </div>
           </div>
@@ -108,57 +108,4 @@
     {% endverbatim %}
     {% endif %}
 </div>
-<div id="formCard" class="form-card mdl-card mdl-cell--8-col mdl-cell--2-offset-desktop mdl-shadow--2dp mdl-grid">
-   <div class="mdl-card__title">
-      <h2 class="mdl-card__title-text">New Ticket</h2>
-   </div>
-   <div class="mdl-card__supporting-text">
-      <form method="post" action="{% url 'api_v1_ticket_create' id %}" id="newTicketForm" class="mdl-cell--12-col">
-         {% csrf_token %}
-         <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label mdl-cell--12-col mdl-cell--bottom">
-            {{ form.title }}
-            <label class="mdl-textfield__label" for="{{ form.title.id_for_label }}">Title</label>
-         </div>
-         <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label mdl-cell--12-col mdl-cell--bottom">
-            {{ form.body }}
-            <label class="mdl-textfield__label" for="{{ form.body.id_for_label }}">Body</label>
-         </div>
-         <div class="mdl-checkbox ">
-            {{ form.anonymous }}
-            <label class="mdl-checkbox__label" for="{{ form.anonymous.id_for_label }}">Anonymous</label>
-         </div>
-         {{ form.status.as_hidden }}
-         <br></br>
-         <div class="mdl-layout-spacer"></div>
-            <div class="mdl-card__actions">
-               <div class="mdl-layout-spacer"></div>
-               <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--primary">
-                  Create Ticket <i class="material-icons right">done</i>
-               </button>
-            </div>
-         </form>
-      </div>
-   </div>
-<div class="fixed-action-btn">
-  {% if "action_manage_box" in box_perms %}
-  <a href="{% url 'manage_box_edit' id %}" class="fab">
-    <button id="settings" class="mdl-button mdl-js-button mdl-button--fab mdl-button--accent">
-      <i class="material-icons">settings</i>
-    </button>
-  </a>
-  {% endif %}
-  {% if "action_add_tickets" in box_perms %}
-  <a href="{% url 'view_box_archive' id %}" class="fab">
-    <button id="archive" class="mdl-button mdl-js-button mdl-button--fab mdl-button--accent">
-      <i class="material-icons">archive</i>
-    </button>
-  </a>
-  {% endif %}
-  {% if "action_add_tickets" in box_perms %}
-  <button id="showNewItem" class="mdl-button mdl-js-button mdl-button--fab mdl-button--colored">
-    <i class="material-icons">add</i>
-  </button>
-  {% endif %}
-</div>
-<br/>
 {% endblock %}
