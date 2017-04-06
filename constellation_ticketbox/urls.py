@@ -80,15 +80,7 @@ urlpatterns = [
         views.api_v1_ticket_create, 
         name="api_v1_ticket_create"),
 
-    url(r'^api/v1/ticket/(?P<ticket_id>\d+)/archive$', 
-        views.api_v1_ticket_archive,
-        name="api_v1_ticket_archive"),
-
-    url(r'^api/v1/ticket/(?P<ticket_id>\d+)/unarchive$', 
-        views.api_v1_ticket_unarchive,
-        name="api_v1_ticket_unarchive"),
-
-    url(r'^api/v1/ticket/(?P<ticket_id>\d+)/replies$', 
+    url(r'^api/v1/box/(?P<box_id>\d+)/ticket/(?P<ticket_id>\d+)/replies$', 
         views.api_v1_ticket_replies,
         name="api_v1_ticket_replies"),
 

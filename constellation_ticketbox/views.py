@@ -241,7 +241,7 @@ def api_v1_box_unarchive(request, box_id):
 @permission_required('constellation_ticketbox.action_add_tickets',
                      (Box, 'id', 'box_id'))
 def api_v1_box_open_tickets(request, box_id):
-    '''Retrieve all unarchived tickets that user can view for box'''
+    '''Retrieve all unarchived tickets for box'''
     ticketObjects = Ticket.objects.filter(box=Box.objects.get(pk=box_id),
                     archived=False)
     if ticketObjects:
@@ -251,12 +251,11 @@ def api_v1_box_open_tickets(request, box_id):
         return HttpResponseNotFound("There are no open tickets in this box.")
 
 
-# TODO have link to list of archived tickets?
 @login_required
 @permission_required('constellation_ticketbox.action_add_tickets',
                      (Box, 'id', 'box_id'))
 def api_v1_box_closed_tickets(request, box_id):
-    '''Retrieve all archived tickets that user can view for box'''
+    '''Retrieve all archived tickets for box'''
     ticketObjects = Ticket.objects.filter(box=Box.objects.get(pk=box_id),
                     archived=True)
     if ticketObjects:
@@ -295,43 +294,25 @@ def api_v1_ticket_create(request, box_id):
     else:
         return HttpResponseBadRequest("Invalid Form Data!")
 
-
 @login_required
-# add permissions
-def api_v1_ticket_archive(request, ticket_id):
-    '''Archive a ticket'''
-    ticket = Ticket.objects.get(pk=ticket_id)
-    ticket.archived = True
-    try:
-        ticket.save()
-        return HttpResponse("Ticket Archived")
-    except:
-        return HttpResponseServerError("Ticket could not be archived at this time")
-
-
-@login_required
-# add permissions
-def api_v1_ticket_unarchive(request, ticket_id):
-    '''Archive a ticket'''
-    ticket = Ticket.objects.get(pk=ticket_id)
-    ticket.archived = False
-    try:
-        ticket.save()
-        return HttpResponse("Ticket Unarchived")
-    except:
-        return HttpResponseServerError("Ticket could not be unarchived at this time")
-
-
-@login_required
-# add permissions
-def api_v1_ticket_replies(request, ticket_id):
+@permission_required('constellation_ticketbox.action_add_tickets',
+                     (Box, 'id', 'box_id'))
+def api_v1_ticket_replies(request, box_id, ticket_id):
     ''''Retrieve all replies for a ticket'''
-    replyObjects = Reply.objects.filter(ticket=Ticket.objects.get(pk=ticket_id))
-    if replyObjects:
-        replies = serializers.serialize('json', replyObjects)
-        return HttpResponse(replies)
+    box = get_object_or_404(Box, pk=box_id)
+    ticket = Ticket.objects.get(pk=ticket_id)
+    box_perms = get_perms(request.user, box)
+
+    if ((ticket.owner == request.user) or ('action_read_box' in box_perms)):
+
+        replyObjects = Reply.objects.filter(ticket=Ticket.objects.get(pk=ticket_id))
+        if replyObjects:
+            replies = serializers.serialize('json', replyObjects)
+            return HttpResponse(replies)
+        else:
+            return HttpResponseNotFound("There are no replies to this ticket.")
     else:
-        return HttpResponseNotFound("There are no replies to this ticket.")
+        return HttpResponseNotFound("You do not have permissions to see this ticket.")
 
 
 @login_required
@@ -360,7 +341,11 @@ def api_v1_ticket_update_status(request, box_id, ticket_id):
                 newReply = Reply()
                 newReply.ticket = ticket
                 newReply.owner = request.user
-                newReply.author = request.user.username
+                # preserve anonymity
+                if (ticket.anonymous == True):
+                    newReply.author = 'Anonymous'
+                else: 
+                    newReply.author = request.user.username                
                 newReply.body = 'Ticket status has been set to \'' + newStatus + '\'.'
                 newReply.save()
                 return HttpResponse(serializers.serialize('json', [newReply,]))
@@ -378,23 +363,38 @@ def api_v1_ticket_update_status(request, box_id, ticket_id):
 # -----------------------------------------------------------------------------
 
 @login_required
-# add permissions
+@permission_required('constellation_ticketbox.action_add_tickets',
+                     (Box, 'id', 'box_id'))
 def api_v1_reply_create(request, box_id, ticket_id):
     '''Create a reply for a ticket'''
-    replyForm = ReplyForm(request.POST or None)
-    if request.POST and replyForm.is_valid():
-        newReply = Reply()
-        newReply.body = replyForm.cleaned_data['body']
-        newReply.owner = request.user
-        newReply.author = request.user.username
-        newReply.ticket = get_object_or_404(Ticket, pk=ticket_id)
-        try:
-            newReply.save()
-            return HttpResponse(serializers.serialize('json', [newReply,]))
-        except:
-            return HttpResponseServerError("Could not save reply at this time")
+
+    box = get_object_or_404(Box, pk=box_id)
+    ticket = Ticket.objects.get(pk=ticket_id)
+    box_perms = get_perms(request.user, box)
+
+    if ((ticket.owner == request.user) or ('action_read_box' in box_perms)):
+        replyForm = ReplyForm(request.POST or None)
+        if request.POST and replyForm.is_valid():
+            newReply = Reply()
+            newReply.body = replyForm.cleaned_data['body']
+            newReply.owner = request.user
+
+            # preserve anonymity
+            if (ticket.anonymous == True):
+                newReply.author = 'Anonymous'
+            else: 
+                newReply.author = request.user.username
+
+            newReply.ticket = get_object_or_404(Ticket, pk=ticket_id)
+            try:
+                newReply.save()
+                return HttpResponse(serializers.serialize('json', [newReply,]))
+            except:
+                return HttpResponseServerError("Could not save reply at this time")
+        else:
+            return HttpResponseBadRequest("Invalid Form Data!")
     else:
-        return HttpResponseBadRequest("Invalid Form Data!")
+        return HttpResponseBadRequest("You don't have permissions to reply to this ticket.")
     
 
 # -----------------------------------------------------------------------------
