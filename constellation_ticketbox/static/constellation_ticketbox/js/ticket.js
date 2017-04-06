@@ -75,26 +75,3 @@ function addItem(event) {
     });
 }
 
-
-$('#updateForm').on('submit', redirect);
-function redirect(event) {
-  event.preventDefault();
-  var form_data = $('#updateForm');
-  $.post(event.target.action, form_data.serialize(), function(response) {
-    var reply = {};
-    response = response[0];
-    reply.id = response.pk;
-    reply.body = response.fields.body;
-    reply.owner = response.fields.owner;
-    reply.author = response.fields.author;
-    replies_data.replies.push(reply);
-    renderTemplate(replies_data);
-  }, 'json')
-    .fail(function(jqXHR) {
-      if (jqXHR.status == 400 || jqXHR.status == 500) {
-        message.MaterialSnackbar.showSnackbar({message: jqXHR.responseText});
-      } else {
-        message.MaterialSnackbar.showSnackbar({message: 'An error occured.'});
-      }
-    })
-}

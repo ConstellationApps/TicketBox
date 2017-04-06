@@ -3,6 +3,7 @@ import json
 from django.contrib.auth.models import Group
 from django.contrib.auth.models import User
 from django.shortcuts import render
+from django.shortcuts import redirect
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
 from django.http import HttpResponseNotFound
@@ -327,15 +328,18 @@ def api_v1_ticket_update_status(request, box_id, ticket_id):
         box_perms = get_perms(request.user, box)
 
         if ((ticket.owner == request.user) or ('action_read_box' in box_perms)):
-
             try:
                 ticket = Ticket.objects.get(pk=ticket_id)
                 newStatus = ticketForm.cleaned_data['status']
+                # prevent duplicate status changes
+                if (newStatus == ticket.status):
+                    return redirect(reverse("view_ticket", args=[box_id, ticket_id,]))
+                    
                 if (newStatus == 'Closed'):
                     ticket.archived = True
                 else:
                     ticket.archived = False
-                ticket.status = ticketForm.cleaned_data['status']
+                ticket.status = newStatus
                 ticket.save()
 
                 newReply = Reply()
@@ -348,7 +352,7 @@ def api_v1_ticket_update_status(request, box_id, ticket_id):
                     newReply.author = request.user.username                
                 newReply.body = 'Ticket status has been set to \'' + newStatus + '\'.'
                 newReply.save()
-                return HttpResponse(serializers.serialize('json', [newReply,]))
+                return redirect(reverse("view_ticket", args=[box_id, ticket_id,]))
             except AttributeError:
                 return HttpResponseServerError("Invalid Ticket ID!")
         else: 
