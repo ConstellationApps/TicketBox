@@ -12,6 +12,9 @@ class Reply(models.Model):
     body = models.TextField(blank=False, null=False)
     timestamp = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        ordering = ['timestamp']
+
 
 class Ticket(models.Model):
     STATUS_CHOICES = (
