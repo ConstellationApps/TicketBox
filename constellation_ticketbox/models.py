@@ -4,16 +4,18 @@ from django.contrib.auth.models import Group
 
 from guardian.shortcuts import assign_perm, remove_perm, get_perms
 
+
 class Reply(models.Model):
     ticket = models.ForeignKey('Ticket', blank=True, null=True)
     owner = models.ForeignKey(User)
     author = models.CharField(max_length=128, default='Anonymous')
     body = models.TextField(blank=False, null=False)
     timestamp = models.DateTimeField(auto_now_add=True)
-    
+
+
 class Ticket(models.Model):
     STATUS_CHOICES = (
-        ('Open', 'Open'), 
+        ('Open', 'Open'),
         ('Closed', 'Closed'),
     )
     owner = models.ForeignKey(User)
