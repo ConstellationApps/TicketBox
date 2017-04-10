@@ -6,6 +6,7 @@ from guardian.shortcuts import assign_perm, remove_perm, get_perms
 
 
 class Reply(models.Model):
+    '''Model for Replies to Tickets'''
     ticket = models.ForeignKey('Ticket', blank=True, null=True)
     owner = models.ForeignKey(User)
     author = models.CharField(max_length=128, default='Anonymous')
@@ -17,9 +18,10 @@ class Reply(models.Model):
 
 
 class Ticket(models.Model):
+    '''Model for Tickets'''
     STATUS_CHOICES = (
         ('Open', 'Open'),
-        ('Closed', 'Closed'),
+        ('Closed', 'Closed')
     )
     owner = models.ForeignKey(User)
     author = models.CharField(max_length=128, default='Anonymous')
@@ -40,6 +42,7 @@ class Ticket(models.Model):
 
 
 class Box(models.Model):
+    '''Model for Boxes that will hold Tickets'''
     name = models.CharField(max_length=128)
     desc = models.TextField()
     archived = models.BooleanField(default=False)

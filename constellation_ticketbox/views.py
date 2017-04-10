@@ -40,7 +40,7 @@ def view_boxes(request):
     template_settings = template_settings_object.settings_dict()
 
     return render(request, 'constellation_ticketbox/view-list.html', {
-        'template_settings': template_settings,
+        'template_settings': template_settings
     })
 
 
@@ -60,7 +60,7 @@ def view_box(request, box_id):
         'id': box_id,
         'template_settings': template_settings,
         'box': box,
-        'user_id': request.user.id,
+        'user_id': request.user.id
     })
 
 
@@ -78,7 +78,7 @@ def view_box_archive(request, box_id):
         'id': box_id,
         'template_settings': template_settings,
         'box': box,
-        'user_id': request.user.id,
+        'user_id': request.user.id
     })
 
 
@@ -105,11 +105,11 @@ def view_ticket(request, ticket_id):
             'id': ticket_id,
             'template_settings': template_settings,
             'ticket': ticket,
-            'box': box,
+            'box': box
         })
     else:
-        return HttpResponseNotFound("You do not have permissions " +
-                                    "for this ticket.")
+        return HttpResponseNotFound("You do not have permissions"
+                                    " for this ticket.")
 
 
 # =============================================================================
@@ -120,6 +120,7 @@ def view_ticket(request, ticket_id):
 @login_required
 @permission_required('constellation_ticketbox.create_box')
 def manage_boxes(request):
+    '''Return a template that will allow users to manage all boxes'''
     template_settings_object = GlobalTemplateSettings(allowBackground=False)
     template_settings = template_settings_object.settings_dict()
     boxForm = BoxForm()
@@ -127,7 +128,7 @@ def manage_boxes(request):
     return render(request, 'constellation_ticketbox/manage-boxes.html', {
         'form': boxForm,
         'template_settings': template_settings,
-        'groups': groups,
+        'groups': groups
     })
 
 
@@ -135,6 +136,7 @@ def manage_boxes(request):
 @permission_required('constellation_ticketbox.action_manage_box',
                      (Box, 'id', 'box_id'))
 def manage_box_edit(request, box_id):
+    '''Return a template that will allow users to edit a box'''
     template_settings_object = GlobalTemplateSettings(allowBackground=False)
     template_settings = template_settings_object.settings_dict()
     box = Box.objects.get(pk=box_id)
@@ -144,7 +146,7 @@ def manage_box_edit(request, box_id):
         'form': boxForm,
         'box_id': box_id,
         'template_settings': template_settings,
-        'groups': groups,
+        'groups': groups
     })
 
 
@@ -182,7 +184,7 @@ def api_v1_box_create(request):
         try:
             newBox.save()
             newBox.set_box_permissions(request.POST.items())
-            return HttpResponse(serializers.serialize('json', [newBox, ]))
+            return HttpResponse(serializers.serialize('json', [newBox]))
         except:
             return HttpResponseServerError("Could not save box at this time")
     else:
@@ -203,7 +205,7 @@ def api_v1_box_update(request, box_id):
             box.desc = boxForm.cleaned_data['desc']
             box.save()
             return HttpResponse(json.dumps({"box": reverse("view_box",
-                                                           args=[box_id, ])}))
+                                                           args=[box_id])}))
         except AttributeError:
             return HttpResponseServerError("Invalid Box ID!")
     else:
@@ -221,7 +223,7 @@ def api_v1_box_archive(request, box_id):
         box.save()
         return HttpResponse("Box Archived")
     except:
-        return HttpResponseServerError("Box could not be " +
+        return HttpResponseServerError("Box could not be "
                                        "archived at this time")
 
 
@@ -236,7 +238,7 @@ def api_v1_box_unarchive(request, box_id):
         box.save()
         return HttpResponse("Box Un-Archived")
     except:
-        return HttpResponseServerError("Box could not be " +
+        return HttpResponseServerError("Box could not be "
                                        "un-archived at this time")
 
 
@@ -285,14 +287,14 @@ def api_v1_ticket_create(request, box_id):
         newTicket.box = get_object_or_404(Box, pk=box_id)
         newTicket.owner = request.user
         newTicket.anonymous = ticketForm.cleaned_data['anonymous']
-        if (newTicket.anonymous is False):
+        if (not newTicket.anonymous):
             newTicket.author = request.user.username
         newTicket.status = 'Open'
 
         newTicket.save()
         # set permissions based on ownership, box groups
         assign_perm('owner', request.user, newTicket)
-        return HttpResponse(serializers.serialize('json', [newTicket, ]))
+        return HttpResponse(serializers.serialize('json', [newTicket]))
 
     else:
         return HttpResponseBadRequest("Invalid Form Data!")
@@ -315,7 +317,7 @@ def api_v1_ticket_replies(request, ticket_id):
         else:
             return HttpResponseNotFound("There are no replies to this ticket.")
     else:
-        return HttpResponseNotFound("You do not have permissions " +
+        return HttpResponseNotFound("You do not have permissions "
                                     "to see this ticket.")
 
 
@@ -329,17 +331,17 @@ def api_v1_ticket_update_status(request, ticket_id):
         box_perms = get_perms(request.user, box)
 
         if ((ticket.owner == request.user) or
-                ('action_manage_tickets' in box_perms)):
+           ('action_manage_tickets' in box_perms)):
             try:
                 ticket = Ticket.objects.get(pk=ticket_id)
                 newStatus = ticketForm.cleaned_data['status']
                 # prevent duplicate status changes
                 if (newStatus == ticket.status):
-                    return redirect(reverse("view_ticket", args=[ticket_id, ]))
+                    return redirect(reverse("view_ticket", args=[ticket_id]))
 
                 # prevent owners from re-opening their own tickets
-                if (ticket.owner is request.user and ticket.archived is True):
-                    return redirect(reverse("view_ticket", args=[ticket_id, ]))
+                if (ticket.owner == request.user and ticket.archived):
+                    return redirect(reverse("view_ticket", args=[ticket_id]))
 
                 if (newStatus == 'Closed'):
                     ticket.archived = True
@@ -352,18 +354,18 @@ def api_v1_ticket_update_status(request, ticket_id):
                 newReply.ticket = ticket
                 newReply.owner = request.user
                 # preserve anonymity
-                if (ticket.anonymous is True and ticket.owner is request.user):
+                if (ticket.anonymous and ticket.owner == request.user):
                     newReply.author = 'Anonymous'
                 else:
                     newReply.author = request.user.username
                 newReply.body = 'Ticket status has been set to \''
                 newReply.body += newStatus + '\'.'
                 newReply.save()
-                return redirect(reverse("view_ticket", args=[ticket_id, ]))
+                return redirect(reverse("view_ticket", args=[ticket_id]))
             except AttributeError:
                 return HttpResponseServerError("Invalid Ticket ID!")
         else:
-            return HttpResponseBadRequest("You don't have permissions " +
+            return HttpResponseBadRequest("You don't have permissions "
                                           "to edit this ticket's status.")
     else:
         return HttpResponseBadRequest("Invalid Form Data!")
@@ -376,7 +378,6 @@ def api_v1_ticket_update_status(request, ticket_id):
 @login_required
 def api_v1_reply_create(request, ticket_id):
     '''Create a reply for a ticket'''
-
     ticket = Ticket.objects.get(pk=ticket_id)
     box = ticket.box
     box_perms = get_perms(request.user, box)
@@ -389,7 +390,7 @@ def api_v1_reply_create(request, ticket_id):
             newReply.owner = request.user
 
             # preserve anonymity
-            if (ticket.anonymous is True and request.user is ticket.owner):
+            if (ticket.anonymous and request.user == ticket.owner):
                 newReply.author = 'Anonymous'
             else:
                 newReply.author = request.user.username
@@ -398,14 +399,14 @@ def api_v1_reply_create(request, ticket_id):
             try:
                 newReply.save()
                 return HttpResponse(serializers.serialize('json',
-                                                          [newReply, ]))
+                                                          [newReply]))
             except:
-                return HttpResponseServerError("Could not save reply" +
+                return HttpResponseServerError("Could not save reply"
                                                " at this time")
         else:
             return HttpResponseBadRequest("Invalid Form Data!")
     else:
-        return HttpResponseBadRequest("You don't have permissions " +
+        return HttpResponseBadRequest("You don't have permissions "
                                       "to reply to this ticket.")
 
 
