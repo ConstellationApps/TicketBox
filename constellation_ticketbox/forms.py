@@ -4,7 +4,7 @@ from django.forms import ModelForm
 
 
 class BoxForm(ModelForm):
-    '''Form for the Box model'''
+    """Form for the Box model"""
     def __init__(self, *args, **kwargs):
         super(BoxForm, self).__init__(*args, **kwargs)
         for field_name, field in self.fields.items():
@@ -17,7 +17,7 @@ class BoxForm(ModelForm):
 
 
 class TicketForm(ModelForm):
-    '''Form for the Ticket model'''
+    """Form for the Ticket model"""
     def __init__(self, *args, **kwargs):
         super(TicketForm, self).__init__(*args, **kwargs)
         for field_name, field in self.fields.items():
@@ -30,7 +30,7 @@ class TicketForm(ModelForm):
 
 
 class ReplyForm(ModelForm):
-    '''Form for the Reply model'''
+    """Form for the Reply model"""
     def __init__(self, *args, **kwargs):
         super(ReplyForm, self).__init__(*args, **kwargs)
         for field_name, field in self.fields.items():

@@ -88,6 +88,14 @@ urlpatterns = [
         views.api_v1_ticket_update_status,
         name="api_v1_ticket_update_status"),
 
+    url(r'^api/v1/ticket/(?P<ticket_id>\d+)/archive$',
+        views.api_v1_ticket_archive,
+        name="api_v1_ticket_archive"),
+
+    url(r'^api/v1/ticket/(?P<ticket_id>\d+)/unarchive$',
+        views.api_v1_ticket_unarchive,
+        name="api_v1_ticket_unarchive"),
+
 # -----------------------------------------------------------------------------
 # API Routes related to Reply Operations
 # -----------------------------------------------------------------------------

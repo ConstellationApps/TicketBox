@@ -34,8 +34,8 @@ from .forms import ReplyForm
 
 @login_required
 def view_boxes(request):
-    '''Return the base template that will call the API to display
-    a list of boxes'''
+    """Return the base template that will call the API to display
+    a list of boxes"""
     template_settings_object = GlobalTemplateSettings(allowBackground=False)
     template_settings = template_settings_object.settings_dict()
 
@@ -48,8 +48,8 @@ def view_boxes(request):
 @permission_required('constellation_ticketbox.action_add_tickets',
                      (Box, 'id', 'box_id'))
 def view_box(request, box_id):
-    '''Return the base template that will call the API to display the
-    box with all visible tickets'''
+    """Return the base template that will call the API to display the
+    box with all visible tickets"""
     template_settings_object = GlobalTemplateSettings(allowBackground=False)
     template_settings = template_settings_object.settings_dict()
     ticketForm = TicketForm()
@@ -68,8 +68,8 @@ def view_box(request, box_id):
 @permission_required('constellation_ticketbox.action_add_tickets',
                      (Box, 'id', 'box_id'))
 def view_box_archive(request, box_id):
-    '''Return the base template that will call the API to display the
-    box with all visible archived tickets for a box'''
+    """Return the base template that will call the API to display the
+    box with all visible archived tickets for a box"""
     template_settings_object = GlobalTemplateSettings(allowBackground=False)
     template_settings = template_settings_object.settings_dict()
     box = Box.objects.get(pk=box_id)
@@ -84,8 +84,8 @@ def view_box_archive(request, box_id):
 
 @login_required
 def view_ticket(request, ticket_id):
-    '''Return the base template that will call the API to display the
-    ticket with all replies'''
+    """Return the base template that will call the API to display the
+    ticket with all replies"""
     # check permissions by user and group
     ticket = Ticket.objects.get(pk=ticket_id)
     box = ticket.box
@@ -120,7 +120,7 @@ def view_ticket(request, ticket_id):
 @login_required
 @permission_required('constellation_ticketbox.create_box')
 def manage_boxes(request):
-    '''Return a template that will allow users to manage all boxes'''
+    """Return a template that will allow users to manage all boxes"""
     template_settings_object = GlobalTemplateSettings(allowBackground=False)
     template_settings = template_settings_object.settings_dict()
     boxForm = BoxForm()
@@ -136,7 +136,7 @@ def manage_boxes(request):
 @permission_required('constellation_ticketbox.action_manage_box',
                      (Box, 'id', 'box_id'))
 def manage_box_edit(request, box_id):
-    '''Return a template that will allow users to edit a box'''
+    """Return a template that will allow users to edit a box"""
     template_settings_object = GlobalTemplateSettings(allowBackground=False)
     template_settings = template_settings_object.settings_dict()
     box = Box.objects.get(pk=box_id)
@@ -160,7 +160,7 @@ def manage_box_edit(request, box_id):
 
 @login_required
 def api_v1_box_list(request):
-    '''List all boxes that a user is allowed to view'''
+    """List all boxes that a user is allowed to view"""
     boxObjects = get_objects_for_user(
         request.user,
         'constellation_ticketbox.action_add_tickets',
@@ -175,7 +175,7 @@ def api_v1_box_list(request):
 @login_required
 @permission_required('constellation_ticketbox.add_box')
 def api_v1_box_create(request):
-    '''Create a box'''
+    """Create a box"""
     boxForm = BoxForm(request.POST or None)
     if request.POST and boxForm.is_valid():
         newBox = Box()
@@ -195,7 +195,7 @@ def api_v1_box_create(request):
 @permission_required('constellation_ticketbox.action_manage_box',
                      (Box, 'id', 'box_id'))
 def api_v1_box_update(request, box_id):
-    '''Update a box'''
+    """Update a box"""
     boxForm = BoxForm(request.POST or None)
     if request.POST and boxForm.is_valid():
         try:
@@ -216,7 +216,7 @@ def api_v1_box_update(request, box_id):
 @permission_required('constellation_ticketbox.action_manage_box',
                      (Box, 'id', 'box_id'))
 def api_v1_box_archive(request, box_id):
-    '''Archive a box'''
+    """Archive a box"""
     box = Box.objects.get(pk=box_id)
     box.archived = True
     try:
@@ -231,7 +231,7 @@ def api_v1_box_archive(request, box_id):
 @permission_required('constellation_ticketbox.action_manage_box',
                      (Box, 'id', 'box_id'))
 def api_v1_box_unarchive(request, box_id):
-    '''Unarchive a box'''
+    """Unarchive a box"""
     box = Box.objects.get(pk=box_id)
     box.archived = False
     try:
@@ -246,7 +246,7 @@ def api_v1_box_unarchive(request, box_id):
 @permission_required('constellation_ticketbox.action_add_tickets',
                      (Box, 'id', 'box_id'))
 def api_v1_box_open_tickets(request, box_id):
-    '''Retrieve all unarchived tickets for box'''
+    """Retrieve all unarchived tickets for box"""
     ticketObjects = Ticket.objects.filter(box=Box.objects.get(pk=box_id),
                                           archived=False)
     if ticketObjects:
@@ -260,7 +260,7 @@ def api_v1_box_open_tickets(request, box_id):
 @permission_required('constellation_ticketbox.action_add_tickets',
                      (Box, 'id', 'box_id'))
 def api_v1_box_closed_tickets(request, box_id):
-    '''Retrieve all archived tickets for box'''
+    """Retrieve all archived tickets for box"""
     ticketObjects = Ticket.objects.filter(box=Box.objects.get(pk=box_id),
                                           archived=True)
     if ticketObjects:
@@ -278,7 +278,7 @@ def api_v1_box_closed_tickets(request, box_id):
 @permission_required('constellation_ticketbox.action_add_tickets',
                      (Box, 'id', 'box_id'))
 def api_v1_ticket_create(request, box_id):
-    '''Create a ticket'''
+    """Create a ticket"""
     ticketForm = TicketForm(request.POST or None)
     if request.POST and ticketForm.is_valid():
         newTicket = Ticket()
@@ -289,6 +289,8 @@ def api_v1_ticket_create(request, box_id):
         newTicket.anonymous = ticketForm.cleaned_data['anonymous']
         if (not newTicket.anonymous):
             newTicket.author = request.user.username
+        else:
+            newTicket.author = 'Anonymous'
         newTicket.status = 'Open'
 
         newTicket.save()
@@ -302,7 +304,7 @@ def api_v1_ticket_create(request, box_id):
 
 @login_required
 def api_v1_ticket_replies(request, ticket_id):
-    ''''Retrieve all replies for a ticket'''
+    """Retrieve all replies for a ticket"""
     ticket = Ticket.objects.get(pk=ticket_id)
     box = ticket.box
     box_perms = get_perms(request.user, box)
@@ -323,7 +325,7 @@ def api_v1_ticket_replies(request, ticket_id):
 
 @login_required
 def api_v1_ticket_update_status(request, ticket_id):
-    '''Update a ticket's status'''
+    """Update a ticket's status"""
     ticketForm = TicketForm(request.POST or None)
     if request.POST and ticketForm.is_valid():
         ticket = Ticket.objects.get(pk=ticket_id)
@@ -335,18 +337,6 @@ def api_v1_ticket_update_status(request, ticket_id):
             try:
                 ticket = Ticket.objects.get(pk=ticket_id)
                 newStatus = ticketForm.cleaned_data['status']
-                # prevent duplicate status changes
-                if (newStatus == ticket.status):
-                    return redirect(reverse("view_ticket", args=[ticket_id]))
-
-                # prevent owners from re-opening their own tickets
-                if (ticket.owner == request.user and ticket.archived):
-                    return redirect(reverse("view_ticket", args=[ticket_id]))
-
-                if (newStatus == 'Closed'):
-                    ticket.archived = True
-                else:
-                    ticket.archived = False
                 ticket.status = newStatus
                 ticket.save()
 
@@ -358,8 +348,7 @@ def api_v1_ticket_update_status(request, ticket_id):
                     newReply.author = 'Anonymous'
                 else:
                     newReply.author = request.user.username
-                newReply.body = 'Ticket status has been set to \''
-                newReply.body += newStatus + '\'.'
+                newReply.body = newStatus
                 newReply.save()
                 return redirect(reverse("view_ticket", args=[ticket_id]))
             except AttributeError:
@@ -371,13 +360,75 @@ def api_v1_ticket_update_status(request, ticket_id):
         return HttpResponseBadRequest("Invalid Form Data!")
 
 
+@login_required
+def api_v1_ticket_archive(request, ticket_id):
+    """Archive a ticket"""
+    ticket = Ticket.objects.get(pk=ticket_id)
+    box = ticket.box
+    box_perms = get_perms(request.user, box)
+
+    if ((ticket.owner == request.user) or
+       ('action_manage_tickets' in box_perms)):
+        try:
+            ticket.archived = True
+            ticket.save()
+
+            newReply = Reply()
+            newReply.ticket = ticket
+            newReply.owner = request.user
+            # preserve anonymity
+            if (ticket.anonymous and ticket.owner == request.user):
+                newReply.author = 'Anonymous'
+            else:
+                newReply.author = request.user.username
+            newReply.body = "This ticket has been closed."
+            newReply.save()
+            return redirect(reverse("view_ticket", args=[ticket_id]))
+        except:
+            return HttpResponseServerError("Ticket could not be "
+                                           "archived at this time")
+    else:
+        return HttpResponseBadRequest("You don't have permissions "
+                                      "to archive this ticket.")
+
+
+@login_required
+def api_v1_ticket_unarchive(request, ticket_id):
+    """Unarchive a ticket"""
+    ticket = Ticket.objects.get(pk=ticket_id)
+    box = ticket.box
+    box_perms = get_perms(request.user, box)
+
+    if ('action_manage_tickets' in box_perms):
+        try:
+            ticket.archived = False
+            ticket.save()
+            newReply = Reply()
+            newReply.ticket = ticket
+            newReply.owner = request.user
+            # preserve anonymity
+            if (ticket.anonymous and ticket.owner == request.user):
+                newReply.author = 'Anonymous'
+            else:
+                newReply.author = request.user.username
+            newReply.body = "This ticket has been reopened."
+            newReply.save()
+            return redirect(reverse("view_ticket", args=[ticket_id]))
+        except:
+            return HttpResponseServerError("Ticket could not be "
+                                           "unarchived at this time")
+    else:
+        return HttpResponseBadRequest("You don't have permissions "
+                                      "to unarchive this ticket.")
+
 # -----------------------------------------------------------------------------
 # API Functions related to Reply Operations
 # -----------------------------------------------------------------------------
 
+
 @login_required
 def api_v1_reply_create(request, ticket_id):
-    '''Create a reply for a ticket'''
+    """Create a reply for a ticket"""
     ticket = Ticket.objects.get(pk=ticket_id)
     box = ticket.box
     box_perms = get_perms(request.user, box)
@@ -416,5 +467,5 @@ def api_v1_reply_create(request, ticket_id):
 
 @login_required
 def view_dashboard(request):
-    '''Return a card that will appear on the main dashboard'''
+    """Return a card that will appear on the main dashboard"""
     return render(request, 'constellation_ticketbox/dashboard.html')

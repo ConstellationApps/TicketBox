@@ -21,6 +21,8 @@
 <script>
     var ticket_id = "{{ id }}"
     var url_api_v1_ticket_replies = "{% url 'api_v1_ticket_replies' id %}"
+    var url_api_v1_ticket_archive = "{% url 'api_v1_ticket_archive' id %}"
+    var url_api_v1_ticket_unarchive = "{% url 'api_v1_ticket_unarchive' id %}"
 </script>
 {% endblock %}
 
@@ -61,14 +63,25 @@
           {{ status_form.title.as_hidden}}
           {{ status_form.body.as_hidden}}
           {{ status_form.anonymous.as_hidden}}
-          <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label mdl-cell--8-col mdl-cell--bottom">
+          <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label mdl-cell--12-col mdl-cell--bottom">
               {{ status_form.status }}
               <label class="mdl-textfield__label" for="{{ status_form.status.id_for_label }}">Status</label>
           </div>
              <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--primary">
                 Update Status <i class="material-icons right">done</i>
              </button>
-         </form>
+        </form>
+        <br>
+        {% if not ticket.archived %}
+        <span class="mdl-list__item-primary-content">
+                  <a href="{% url 'api_v1_ticket_archive' id %}" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--primary">Close Ticket</a>
+        </span>
+        {% endif %}
+        {% if ticket.archived and "action_manage_tickets" in box_perms %}
+        <span class="mdl-list__item-primary-content">
+                  <a href="{% url 'api_v1_ticket_unarchive' id %}" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--primary">Reopen Ticket</a>
+        </span>
+        {% endif %}
     {% endif %}
     </div>
 </div>
