@@ -122,10 +122,10 @@
             {{ form.body }}
             <label class="mdl-textfield__label" for="{{ form.body.id_for_label }}">Body</label>
          </div>
-         <div class="mdl-checkbox ">
-            {{ form.anonymous }}
-            <label class="mdl-checkbox__label" for="{{ form.anonymous.id_for_label }}">Anonymous</label>
-         </div>
+         <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="{{ form.anonymous.id_for_label }}">
+           {{form.anonymous}}
+           <span class="mdl-switch__label">Anonymous</span>
+         </label>
          {{ form.status.as_hidden }}
          <br></br>
          <div class="mdl-layout-spacer"></div>
