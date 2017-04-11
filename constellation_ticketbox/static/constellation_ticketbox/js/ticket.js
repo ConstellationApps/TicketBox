@@ -23,7 +23,7 @@ function getTicket_data() {
       if(true) {
         replies_data.replies.push({
           owner: replies[i].fields.owner,
-          timestamp: replies[i].fields.timestamp,
+          timestamp: (new Date(replies[i].fields.timestamp)).toLocaleString(),
           body: replies[i].fields.body,
           author: replies[i].fields.author,
         });
@@ -60,6 +60,7 @@ function addItem(event) {
     reply.body = response.fields.body;
     reply.owner = response.fields.owner;
     reply.author = response.fields.author;
+    reply.timestamp = (new Date(response.fields.timestamp)).toLocaleString();
     replies_data.replies.push(reply);
     renderTemplate(replies_data);
   }, 'json')

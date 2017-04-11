@@ -21,7 +21,7 @@ function getTicket_data() {
       if (tickets[i].fields.owner == user_id) {
         tickets_data.user_tickets.push({
           title: tickets[i].fields.title,
-          timestamp: tickets[i].fields.timestamp,
+          timestamp: (new Date(tickets[i].fields.timestamp)).toLocaleString(),
           status: tickets[i].fields.status,
           id: tickets[i].pk,
           owner: tickets[i].owner,
@@ -31,7 +31,7 @@ function getTicket_data() {
       } else if(tickets[i].fields.archived == true) {
         tickets_data.tickets.push({
           title: tickets[i].fields.title,
-          timestamp: tickets[i].fields.timestamp,
+          timestamp: (new Date(tickets[i].fields.timestamp)).toLocaleString(),
           status: tickets[i].fields.status,
           id: tickets[i].pk,
           owner: tickets[i].owner,

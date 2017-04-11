@@ -48,7 +48,7 @@
         </div>
         <div class="mdl-list__item">
         <span class="mdl-list__item-secondary-content">
-          Submitted: {{ ticket.timestamp }}
+          Submitted: {{ ticket.timestamp|date:"n/j/Y, g:i:s A" }}
         </span>
         </div>
          <div class="mdl-list__item">
@@ -101,6 +101,11 @@
                 <div class="mdl-list__item">
                     <span class="mdl-card__supporting-text">
                         Author: {{author}}
+                    </span>
+                </div>
+                <div class="mdl-list__item">
+                    <span class="mdl-card__supporting-text">
+                        Submitted: {{timestamp}}
                     </span>
                 </div>
               </div>
