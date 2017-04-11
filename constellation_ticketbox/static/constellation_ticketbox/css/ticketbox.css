@@ -30,8 +30,8 @@
     z-index: 99;
 }
 
-.body {
-  	word-break: break-all;
+.wrap {
   	word-wrap: break-word;
+    word-break: break-word;
 }
 
