@@ -24,8 +24,6 @@ function getTicket_data() {
           timestamp: (new Date(tickets[i].fields.timestamp)).toLocaleString(),
           status: tickets[i].fields.status,
           id: tickets[i].pk,
-          owner: tickets[i].owner,
-          author: tickets[i].author,
           url: url_view_ticket.replace(new RegExp('0' + '$'), tickets[i].pk)
         });
       } else if(tickets[i].fields.archived == true) {
@@ -34,8 +32,6 @@ function getTicket_data() {
           timestamp: (new Date(tickets[i].fields.timestamp)).toLocaleString(),
           status: tickets[i].fields.status,
           id: tickets[i].pk,
-          owner: tickets[i].owner,
-          author: tickets[i].author,
           url: url_view_ticket.replace(new RegExp('0' + '$'), tickets[i].pk)
         });
       }

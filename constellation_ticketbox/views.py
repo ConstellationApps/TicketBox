@@ -15,7 +15,7 @@ from django.contrib.auth.decorators import login_required
 from guardian.decorators import (
     permission_required,
 )
-from guardian.shortcuts import get_objects_for_user, assign_perm, get_perms
+from guardian.shortcuts import get_objects_for_user, get_perms
 
 from constellation_base.models import GlobalTemplateSettings
 
@@ -204,8 +204,8 @@ def api_v1_box_update(request, box_id):
             box.name = boxForm.cleaned_data['name']
             box.desc = boxForm.cleaned_data['desc']
             box.save()
-            return HttpResponse(json.dumps({"box": reverse("constellation_ticketbox:view_box",
-                                                           args=[box_id])}))
+            return HttpResponse(json.dumps({"box": reverse(
+                "constellation_ticketbox:view_box", args=[box_id])}))
         except AttributeError:
             return HttpResponseServerError("Invalid Box ID!")
     else:
@@ -287,15 +287,9 @@ def api_v1_ticket_create(request, box_id):
         newTicket.box = get_object_or_404(Box, pk=box_id)
         newTicket.owner = request.user
         newTicket.anonymous = ticketForm.cleaned_data['anonymous']
-        if (not newTicket.anonymous):
-            newTicket.author = request.user.username
-        else:
-            newTicket.author = 'Anonymous'
         newTicket.status = 'Open'
 
         newTicket.save()
-        # set permissions based on ownership, box groups
-        assign_perm('owner', request.user, newTicket)
         return HttpResponse(serializers.serialize('json', [newTicket]))
 
     else:
@@ -314,7 +308,8 @@ def api_v1_ticket_replies(request, ticket_id):
         replyObjects = Reply.objects.filter(
             ticket=Ticket.objects.get(pk=ticket_id))
         if replyObjects:
-            replies = serializers.serialize('json', replyObjects)
+            replies = serializers.serialize(
+                'json', replyObjects, use_natural_foreign_keys=True)
             return HttpResponse(replies)
         else:
             return HttpResponseNotFound("There are no replies to this ticket.")
@@ -343,14 +338,13 @@ def api_v1_ticket_update_status(request, ticket_id):
                 newReply = Reply()
                 newReply.ticket = ticket
                 newReply.owner = request.user
-                # preserve anonymity
-                if (ticket.anonymous and ticket.owner == request.user):
-                    newReply.author = 'Anonymous'
-                else:
-                    newReply.author = request.user.username
                 newReply.body = newStatus
+                # preserve anonymity for ticket owners
+                if (ticket.anonymous and (ticket.owner == request.user)):
+                    newReply.anonymous = True
                 newReply.save()
-                return redirect(reverse("constellation_ticketbox:view_ticket", args=[ticket_id]))
+                return redirect(reverse("constellation_ticketbox:view_ticket",
+                                        args=[ticket_id]))
             except AttributeError:
                 return HttpResponseServerError("Invalid Ticket ID!")
         else:
@@ -376,14 +370,13 @@ def api_v1_ticket_archive(request, ticket_id):
             newReply = Reply()
             newReply.ticket = ticket
             newReply.owner = request.user
-            # preserve anonymity
-            if (ticket.anonymous and ticket.owner == request.user):
-                newReply.author = 'Anonymous'
-            else:
-                newReply.author = request.user.username
             newReply.body = "This ticket has been closed."
+            # preserve anonymity for ticket owners
+            if (ticket.anonymous and (ticket.owner == request.user)):
+                newReply.anonymous = True
             newReply.save()
-            return redirect(reverse("constellation_ticketbox:view_ticket", args=[ticket_id]))
+            return redirect(reverse("constellation_ticketbox:view_ticket",
+                                    args=[ticket_id]))
         except:
             return HttpResponseServerError("Ticket could not be "
                                            "archived at this time")
@@ -406,14 +399,13 @@ def api_v1_ticket_unarchive(request, ticket_id):
             newReply = Reply()
             newReply.ticket = ticket
             newReply.owner = request.user
-            # preserve anonymity
-            if (ticket.anonymous and ticket.owner == request.user):
-                newReply.author = 'Anonymous'
-            else:
-                newReply.author = request.user.username
             newReply.body = "This ticket has been reopened."
+            # preserve anonymity for ticket owners
+            if (ticket.anonymous and (ticket.owner == request.user)):
+                newReply.anonymous = True
             newReply.save()
-            return redirect(reverse("constellation_ticketbox:view_ticket", args=[ticket_id]))
+            return redirect(reverse("constellation_ticketbox:view_ticket",
+                                    args=[ticket_id]))
         except:
             return HttpResponseServerError("Ticket could not be "
                                            "unarchived at this time")
@@ -439,18 +431,14 @@ def api_v1_reply_create(request, ticket_id):
             newReply = Reply()
             newReply.body = replyForm.cleaned_data['body']
             newReply.owner = request.user
-
-            # preserve anonymity
-            if (ticket.anonymous and request.user == ticket.owner):
-                newReply.author = 'Anonymous'
-            else:
-                newReply.author = request.user.username
-
             newReply.ticket = get_object_or_404(Ticket, pk=ticket_id)
+            # preserve anonymity for ticket owners
+            if (ticket.anonymous and (ticket.owner == request.user)):
+                newReply.anonymous = True
             try:
                 newReply.save()
-                return HttpResponse(serializers.serialize('json',
-                                                          [newReply]))
+                return HttpResponse(serializers.serialize(
+                    'json', [newReply], use_natural_foreign_keys=True))
             except:
                 return HttpResponseServerError("Could not save reply"
                                                " at this time")

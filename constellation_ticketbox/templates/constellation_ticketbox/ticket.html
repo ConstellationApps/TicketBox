@@ -29,7 +29,6 @@
 {% block content %}
 {% load guardian_tags %}
 {% get_obj_perms request.user for box as "box_perms" %}
-{% get_obj_perms request.user for ticket as "ticket_perms" %}
 <div id="ticketCard" class="wrap mdl-card mdl-cell--10-col mdl-cell--1-offset-desktop mdl-shadow--2dp mdl-grid">
     <div class="mdl-card__title">
       <h2 class="mdl-card__title-text">{{ ticket.title }}</h2>
@@ -43,7 +42,11 @@
         </div>
               <div class="mdl-list__item">
         <span class="mdl-list__item-secondary-content">
-          Author: {{ ticket.author }}
+        {% if ticket.anonymous %}
+          Author: Anonymous
+        {% else %}
+          Author: {{ ticket.owner }}
+        {% endif %}
         </span>
         </div>
         <div class="mdl-list__item">
@@ -57,7 +60,7 @@
         </span>
         </div>
       </div>
-      {% if "action_manage_tickets" in box_perms or "owner" in ticket_perms %}
+      {% if "action_manage_tickets" in box_perms or request.user == ticket.owner %}
       <form method="post" action="{% url 'constellation_ticketbox:api_v1_ticket_update_status' id %}" id="updateForm" class="mdl-cell--8-col">
         {% csrf_token %}
           {{ status_form.title.as_hidden}}
@@ -82,7 +85,7 @@
                   <a href="{% url 'constellation_ticketbox:api_v1_ticket_unarchive' id %}" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--primary">Reopen Ticket</a>
         </span>
         {% endif %}
-    {% endif %}
+      {% endif %}
     </div>
 </div>
 <br></br>
@@ -100,7 +103,11 @@
                 </div>
                 <div class="mdl-list__item">
                     <span class="mdl-card__supporting-text">
-                        Author: {{author}}
+                    {{#if anonymous}}
+                        Author: Anonymous
+                    {{else}}
+                        Author: {{owner}}
+                    {{/if}}
                     </span>
                 </div>
                 <div class="mdl-list__item">
