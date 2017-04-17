@@ -20,8 +20,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.5/handlebars.min.js"></script>
 <script>
     var box_id = "{{ id }}"
-    var url_api_v1_box_closed_tickets = "{% url 'api_v1_box_closed_tickets' id %}"
-    var url_view_ticket = "{% url 'view_ticket' 0 %}"
+    var url_api_v1_box_closed_tickets = "{% url 'constellation_ticketbox:api_v1_box_closed_tickets' id %}"
+    var url_view_ticket = "{% url 'constellation_ticketbox:view_ticket' 0 %}"
     var user_id = "{{ user_id }}"
 </script>
 {% endblock %}

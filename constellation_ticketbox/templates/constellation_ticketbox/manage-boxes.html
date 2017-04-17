@@ -19,11 +19,11 @@
 <script src="{% static 'constellation_ticketbox/js/manage-boxes.js' %}"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.5/handlebars.min.js"></script>
 <script>
-    var url_api_v1_box_list = "{% url 'api_v1_box_list' %}"
-    var url_view_box = "{% url 'view_box' 0 %}"
-    var url_box_edit = "{% url 'manage_box_edit' 0 %}"
-    var url_api_v1_box_archive = "{% url 'api_v1_box_archive' 0 %}"
-    var url_api_v1_box_unarchive = "{% url 'api_v1_box_unarchive' 0 %}"
+    var url_api_v1_box_list = "{% url 'constellation_ticketbox:api_v1_box_list' %}"
+    var url_view_box = "{% url 'constellation_ticketbox:view_box' 0 %}"
+    var url_box_edit = "{% url 'constellation_ticketbox:manage_box_edit' 0 %}"
+    var url_api_v1_box_archive = "{% url 'constellation_ticketbox:api_v1_box_archive' 0 %}"
+    var url_api_v1_box_unarchive = "{% url 'constellation_ticketbox:api_v1_box_unarchive' 0 %}"
 </script>
 {% endblock %}
 
@@ -79,7 +79,7 @@
       <h2 class="mdl-card__title-text">New Box</h2>
    </div>
    <div class="mdl-card__supporting-text">
-      <form method="post" action="{% url 'api_v1_box_create' %}" id="newBoxForm" class="mdl-cell--12-col">
+      <form method="post" action="{% url 'constellation_ticketbox:api_v1_box_create' %}" id="newBoxForm" class="mdl-cell--12-col">
          {% csrf_token %}
          <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label mdl-cell--12-col mdl-cell--bottom">
             {{ form.name }}

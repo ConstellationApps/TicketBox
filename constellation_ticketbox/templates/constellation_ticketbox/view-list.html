@@ -19,8 +19,8 @@
 <script src="{% static 'constellation_ticketbox/js/view-list.js' %}"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.5/handlebars.min.js"></script>
 <script>
-    var url_api_v1_box_list = "{% url 'api_v1_box_list' %}"
-    var url_view_box = "{% url 'view_box' 0 %}"
+    var url_api_v1_box_list = "{% url 'constellation_ticketbox:api_v1_box_list' %}"
+    var url_view_box = "{% url 'constellation_ticketbox:view_box' 0 %}"
 </script>
 {% endblock %}
 

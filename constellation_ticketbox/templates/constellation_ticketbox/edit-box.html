@@ -22,7 +22,7 @@
     <h2 class="mdl-card__title-text">Edit Box</h2>
   </div>
   <div class="mdl-card__supporting-text mdl-grid">
-    <form method="post" action="{% url 'api_v1_box_update' box_id %}" id="editBoxForm" class="mdl-cell--12-col">
+    <form method="post" action="{% url 'constellation_ticketbox:api_v1_box_update' box_id %}" id="editBoxForm" class="mdl-cell--12-col">
       {% csrf_token %}
       <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label mdl-cell--12-col mdl-cell--bottom">
         {{ form.name }}

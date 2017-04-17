@@ -19,8 +19,8 @@
 <script src="{% static 'constellation_ticketbox/js/box.js' %}"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.5/handlebars.min.js"></script>
 <script>
-    var url_api_v1_box_open_tickets = "{% url 'api_v1_box_open_tickets' id %}"
-    var url_view_ticket = "{% url 'view_ticket' 0 %}"
+    var url_api_v1_box_open_tickets = "{% url 'constellation_ticketbox:api_v1_box_open_tickets' id %}"
+    var url_view_ticket = "{% url 'constellation_ticketbox:view_ticket' 0 %}"
     var user_id = "{{ user_id }}"
 </script>
 {% endblock %}
@@ -112,7 +112,7 @@
       <h2 class="mdl-card__title-text">New Ticket</h2>
    </div>
    <div class="mdl-card__supporting-text">
-      <form method="post" action="{% url 'api_v1_ticket_create' id %}" id="newTicketForm" class="mdl-cell--12-col">
+      <form method="post" action="{% url 'constellation_ticketbox:api_v1_ticket_create' id %}" id="newTicketForm" class="mdl-cell--12-col">
          {% csrf_token %}
          <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label mdl-cell--12-col mdl-cell--bottom">
             {{ form.title }}
@@ -140,14 +140,14 @@
    </div>
 <div class="fixed-action-btn">
   {% if "action_manage_box" in box_perms %}
-  <a href="{% url 'manage_box_edit' id %}" class="fab">
+  <a href="{% url 'constellation_ticketbox:manage_box_edit' id %}" class="fab">
     <button id="settings" class="mdl-button mdl-js-button mdl-button--fab mdl-button--accent">
       <i class="material-icons">settings</i>
     </button>
   </a>
   {% endif %}
   {% if "action_add_tickets" in box_perms %}
-  <a href="{% url 'view_box_archive' id %}" class="fab">
+  <a href="{% url 'constellation_ticketbox:view_box_archive' id %}" class="fab">
     <button id="archive" class="mdl-button mdl-js-button mdl-button--fab mdl-button--accent">
       <i class="material-icons">archive</i>
     </button>

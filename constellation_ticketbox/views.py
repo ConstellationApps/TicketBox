@@ -204,7 +204,7 @@ def api_v1_box_update(request, box_id):
             box.name = boxForm.cleaned_data['name']
             box.desc = boxForm.cleaned_data['desc']
             box.save()
-            return HttpResponse(json.dumps({"box": reverse("view_box",
+            return HttpResponse(json.dumps({"box": reverse("constellation_ticketbox:view_box",
                                                            args=[box_id])}))
         except AttributeError:
             return HttpResponseServerError("Invalid Box ID!")
@@ -350,7 +350,7 @@ def api_v1_ticket_update_status(request, ticket_id):
                     newReply.author = request.user.username
                 newReply.body = newStatus
                 newReply.save()
-                return redirect(reverse("view_ticket", args=[ticket_id]))
+                return redirect(reverse("constellation_ticketbox:view_ticket", args=[ticket_id]))
             except AttributeError:
                 return HttpResponseServerError("Invalid Ticket ID!")
         else:
@@ -383,7 +383,7 @@ def api_v1_ticket_archive(request, ticket_id):
                 newReply.author = request.user.username
             newReply.body = "This ticket has been closed."
             newReply.save()
-            return redirect(reverse("view_ticket", args=[ticket_id]))
+            return redirect(reverse("constellation_ticketbox:view_ticket", args=[ticket_id]))
         except:
             return HttpResponseServerError("Ticket could not be "
                                            "archived at this time")
@@ -413,7 +413,7 @@ def api_v1_ticket_unarchive(request, ticket_id):
                 newReply.author = request.user.username
             newReply.body = "This ticket has been reopened."
             newReply.save()
-            return redirect(reverse("view_ticket", args=[ticket_id]))
+            return redirect(reverse("constellation_ticketbox:view_ticket", args=[ticket_id]))
         except:
             return HttpResponseServerError("Ticket could not be "
                                            "unarchived at this time")
