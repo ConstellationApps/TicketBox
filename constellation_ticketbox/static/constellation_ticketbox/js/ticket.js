@@ -25,7 +25,8 @@ function getTicket_data() {
           owner: replies[i].fields.owner,
           timestamp: (new Date(replies[i].fields.timestamp)).toLocaleString(),
           body: replies[i].fields.body,
-          anonymous: replies[i].fields.anonymous
+          anonymous: replies[i].fields.anonymous,
+          is_action: replies[i].fields.is_action
         });
       }
     }
@@ -61,6 +62,7 @@ function addItem(event) {
     reply.owner = response.fields.owner;
     reply.timestamp = (new Date(response.fields.timestamp)).toLocaleString();
     reply.anonymous = response.fields.anonymous;
+    reply.is_action = response.fields.is_action;
     replies_data.replies.push(reply);
     renderTemplate(replies_data);
   }, 'json')

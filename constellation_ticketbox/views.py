@@ -339,6 +339,7 @@ def api_v1_ticket_update_status(request, ticket_id):
                 newReply.ticket = ticket
                 newReply.owner = request.user
                 newReply.body = newStatus
+                newReply.is_action = True
                 # preserve anonymity for ticket owners
                 if (ticket.anonymous and (ticket.owner == request.user)):
                     newReply.anonymous = True
@@ -371,6 +372,7 @@ def api_v1_ticket_archive(request, ticket_id):
             newReply.ticket = ticket
             newReply.owner = request.user
             newReply.body = "This ticket has been closed."
+            newReply.is_action = True
             # preserve anonymity for ticket owners
             if (ticket.anonymous and (ticket.owner == request.user)):
                 newReply.anonymous = True
@@ -400,6 +402,7 @@ def api_v1_ticket_unarchive(request, ticket_id):
             newReply.ticket = ticket
             newReply.owner = request.user
             newReply.body = "This ticket has been reopened."
+            newReply.is_action = True
             # preserve anonymity for ticket owners
             if (ticket.anonymous and (ticket.owner == request.user)):
                 newReply.anonymous = True

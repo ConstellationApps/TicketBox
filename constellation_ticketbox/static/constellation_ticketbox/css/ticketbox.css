@@ -22,7 +22,6 @@
     margin-right: 0;
 }
 
-
 .fixed-action-btn {
     bottom: 45px;
     position: fixed;
@@ -30,8 +29,16 @@
     z-index: 99;
 }
 
+.reply-icon {
+    display: inline-block;
+    margin: auto;
+}
+
 .wrap {
   	word-wrap: break-word;
     word-break: break-word;
 }
 
+.body {
+    font-size: large;
+}

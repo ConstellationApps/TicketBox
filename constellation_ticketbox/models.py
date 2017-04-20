@@ -12,6 +12,7 @@ class Reply(models.Model):
     body = models.TextField(null=False)
     timestamp = models.DateTimeField(auto_now_add=True)
     anonymous = models.BooleanField(default=False)
+    is_action = models.BooleanField(default=False)
 
     class Meta:
         ordering = ['timestamp']
