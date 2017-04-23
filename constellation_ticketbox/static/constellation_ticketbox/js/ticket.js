@@ -1,4 +1,4 @@
-/* global Handlebars componentHandler url_api_v1_ticket_replies url_view_ticket 
+/* global Handlebars componentHandler url_api_v1_ticket_replies url_view_ticket
    url_api_v1_reply_create*/
 
 /* Global ticket state */

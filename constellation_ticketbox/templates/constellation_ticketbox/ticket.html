@@ -29,14 +29,14 @@
 {% block content %}
 {% load guardian_tags %}
 {% get_obj_perms request.user for box as "box_perms" %}
-<div id="ticketCard" class="wrap mdl-card mdl-cell--10-col mdl-cell--1-offset-desktop mdl-shadow--2dp mdl-grid">
+<div id="ticketCard" class="wrap mdl-card mdl-cell--8-col mdl-cell--2-offset-desktop mdl-shadow--2dp mdl-grid">
   <div class="mdl-card__title">
     <h2 class="mdl-card__title-text">Ticket #{{ ticket.pk }}: {{ ticket.title }}</h2>
   </div>
   <div class="mdl-card__supporting-text">
   <span class="body">{{ ticket.body }}</span><br><hr>
 
-  Submitted by 
+  Submitted by
       {% if ticket.anonymous %}
         Anonymous
       {% else %}
@@ -45,7 +45,7 @@
       at {{ ticket.timestamp|date:"n/j/Y, g:i:s A" }}<br>
       Status: {{ ticket.status }}<br>
 
-  </div>      
+  </div>
   <div class="mdl-card__actions mdl-card--border">
   {% if "action_manage_tickets" in box_perms or request.user == ticket.owner %}
   Actions
@@ -66,7 +66,7 @@
     <br>
     {% if not ticket.archived %}
               <a href="{% url 'constellation_ticketbox:api_v1_ticket_archive' id %}" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--primary">Close Ticket</a>
-  
+
     {% endif %}
     {% if ticket.archived and "action_manage_tickets" in box_perms %}
               <a href="{% url 'constellation_ticketbox:api_v1_ticket_unarchive' id %}" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--primary">Reopen Ticket</a>
@@ -78,70 +78,60 @@
 
 
 
-<div id="repliesCard" class="wrap">
+<div id="repliesCard" class="wrap mdl-card mdl-cell--8-col mdl-cell--2-offset-desktop mdl-grid">
     {% verbatim %}
     <script id="handlebars-replies" type="text/x-handlebars-template">
-      {{#if replies}}
-      {{#each replies}}
+      <ul class="mdl-list">
+        {{#if replies}}
+        {{#each replies}}
 
-        {{#if is_action}}
-          <div class="mdl-card mdl-cell--10-col mdl-cell--1-offset-desktop mdl-grid">
-            <div class="mdl-cell mdl-cell--2-col mdl-cell--middle">
-              <i class="material-icons reply-icon">error</i>
-            </div>
-
-            <div class="mdl-cell mdl-cell--10-col mdl-cell--middle mdl-cell--stretch">
-
-
-              <div class="mdl-card__supporting-text">
-                <br><hr>
-                {{#if anonymous}}
-                  Anonymous 
-                {{else}}
-                  {{owner}} 
-                {{/if}}
-                updated this ticket at {{timestamp}}: 
-                <div>{{body}}</div>
-                <hr>
-              </div>
-            </div>
-          </div>
-            </div>
-          </div>
-        {{else}}
-
-
-
-          <div class="mdl-card mdl-cell--10-col mdl-cell--1-offset-desktop mdl-grid">
-            <div class="mdl-cell mdl-cell--2-col mdl-cell--middle">
-              <i class="material-icons reply-icon">chat</i>
-            </div>
-
-            <div class="mdl-cell mdl-cell--10-col mdl-cell--middle mdl-cell--stretch mdl-shadow--2dp">
-
-              <div class="mdl-card__supporting-text">
-              <span class="body">{{body}}</span><br><hr>
+          {{#if is_action}}
+          <hr>
+            <li class="mdl-list__item mdl-list__item--three-line">
+              <span class="mdl-list__item-primary-content">
+                <i class="material-icons mdl-list__item-avatar">error</i>
+                <span>
                   {{#if anonymous}}
-                    Anonymous 
+                    Anonymous
                   {{else}}
-                    {{owner}} 
+                    {{owner}}
                   {{/if}}
-                  replied to this ticket at {{timestamp}}
-              </div>
-            </div>
-          </div>
+                  updated this ticket at {{timestamp}}:
+                </span>
+                <span class="mdl-list__item-text-body">{{body}}</span>
+              </span>
+            </li>
+            <hr>
+          {{else}}
 
+
+            <li class="mdl-list__item mdl-list__item--three-line mdl-shadow--2dp">
+              <span class="mdl-list__item-primary-content">
+                <i class="material-icons mdl-list__item-avatar">chat</i>
+                  <span>
+                    {{#if anonymous}}
+                      Anonymous
+                    {{else}}
+                      {{owner}}
+                    {{/if}}
+                    replied to this ticket at {{timestamp}}:
+                  </span>
+                <span class="mdl-list__item-text-body">{{body}}</span>
+              </span>
+            </li>
+
+          {{/if}}
+          <br></br>
+        {{/each}}
+        {{else}}
+            No replies yet -- add one below!
         {{/if}}
-        <br></br>
-      {{/each}}
-      {{else}}
-          No replies yet -- add one below!
-      {{/if}}
-    </script>
+      </script>
+    </ul>
     {% endverbatim %}
 </div>
 
-<div id="formCard" class="form-card mdl-card mdl-cell--10-col mdl-cell--1-offset-desktop mdl-shadow--2dp mdl-grid">
+<div id="formCard" class="form-card mdl-card mdl-cell--8-col mdl-cell--2-offset-desktop mdl-shadow--2dp mdl-grid">
   <div class="mdl-card__title">
     <h2 class="mdl-card__title-text">New Reply</h2>
   </div>
