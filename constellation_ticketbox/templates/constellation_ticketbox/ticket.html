@@ -29,12 +29,12 @@
 {% block content %}
 {% load guardian_tags %}
 {% get_obj_perms request.user for box as "box_perms" %}
-<div id="ticketCard" class="wrap mdl-card mdl-cell--8-col mdl-cell--2-offset-desktop mdl-shadow--2dp mdl-grid">
+<div class="wrap mdl-card mdl-shadow--2dp mdl-cell--8-col mdl-cell--2-offset-desktop mdl-grid">
   <div class="mdl-card__title">
     <h2 class="mdl-card__title-text">Ticket #{{ ticket.pk }}: {{ ticket.title }}</h2>
   </div>
   <div class="mdl-card__supporting-text">
-  <span class="body">{{ ticket.body }}</span><br><hr>
+  <span class="body">{{ ticket.body|linebreaks}}</span><br><hr>
 
   Submitted by
       {% if ticket.anonymous %}
@@ -48,14 +48,13 @@
   </div>
   <div class="mdl-card__actions mdl-card--border">
   {% if "action_manage_tickets" in box_perms or request.user == ticket.owner %}
-  Actions
   <br></br>
-  <form method="post" action="{% url 'constellation_ticketbox:api_v1_ticket_update_status' id %}" id="updateForm" class="mdl-cell--8-col">
+  <form method="post" action="{% url 'constellation_ticketbox:api_v1_ticket_update_status' id %}" id="updateForm" class="mdl-cell--16-col">
     {% csrf_token %}
       {{ status_form.title.as_hidden}}
       {{ status_form.body.as_hidden}}
       {{ status_form.anonymous.as_hidden}}
-      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label mdl-cell--12-col mdl-cell--bottom">
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label mdl-cell--7-col mdl-cell--bottom">
           {{ status_form.status }}
           <label class="mdl-textfield__label" for="{{ status_form.status.id_for_label }}">Status</label>
       </div>
@@ -71,14 +70,12 @@
     {% if ticket.archived and "action_manage_tickets" in box_perms %}
               <a href="{% url 'constellation_ticketbox:api_v1_ticket_unarchive' id %}" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--primary">Reopen Ticket</a>
     {% endif %}
-  {% endif %}
   </div>
+  {% endif %}
 </div>
 <br></br>
 
-
-
-<div id="repliesCard" class="wrap mdl-card mdl-cell--8-col mdl-cell--2-offset-desktop mdl-grid">
+<div id="repliesCard" class="wrap mdl-cell--10-col mdl-cell--2-offset-desktop mdl-grid">
     {% verbatim %}
     <script id="handlebars-replies" type="text/x-handlebars-template">
       <ul class="mdl-list">
@@ -86,7 +83,6 @@
         {{#each replies}}
 
           {{#if is_action}}
-          <hr>
             <li class="mdl-list__item mdl-list__item--three-line">
               <span class="mdl-list__item-primary-content">
                 <i class="material-icons mdl-list__item-avatar">error</i>
@@ -98,14 +94,12 @@
                   {{/if}}
                   updated this ticket at {{timestamp}}:
                 </span>
-                <span class="mdl-list__item-text-body">{{body}}</span>
+                <span class="mdl-list__item-text-body whitespace">{{body}}</span>
               </span>
             </li>
-            <hr>
           {{else}}
 
-
-            <li class="mdl-list__item mdl-list__item--three-line mdl-shadow--2dp">
+            <li class="mdl-list__item mdl-list__item--three-line">
               <span class="mdl-list__item-primary-content">
                 <i class="material-icons mdl-list__item-avatar">short_text</i>
                   <span>
@@ -116,12 +110,12 @@
                     {{/if}}
                     replied to this ticket at {{timestamp}}:
                   </span>
-                <span class="mdl-list__item-text-body">{{body}}</span>
+                <span class="mdl-list__item-text-body whitespace">{{body}}</span>
               </span>
             </li>
 
           {{/if}}
-          <br></br>
+          <hr>
         {{/each}}
         {{else}}
             No replies yet -- add one below!
@@ -131,7 +125,7 @@
     {% endverbatim %}
 </div>
 
-<div id="formCard" class="form-card mdl-card mdl-cell--8-col mdl-cell--2-offset-desktop mdl-shadow--2dp mdl-grid">
+<div class="mdl-cell--8-col mdl-cell--2-offset-desktop mdl-grid">
   <div class="mdl-card__title">
     <h2 class="mdl-card__title-text">New Reply</h2>
   </div>

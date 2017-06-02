@@ -52,3 +52,15 @@
 .mdl-list__item--three-line .mdl-list__item-primary-content {
     height: auto;
 }
+
+.whitespace {
+    white-space: pre;
+}
+
+.mdl-card__actions {
+    display: flex;
+    flex-wrap: nowrap;
+    box-sizing:border-box;
+    align-items: center;
+    justify-content: space-around;
+}
