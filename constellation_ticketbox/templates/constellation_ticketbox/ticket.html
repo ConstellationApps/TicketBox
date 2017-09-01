@@ -29,13 +29,13 @@
 {% block content %}
 {% load guardian_tags %}
 {% get_obj_perms request.user for box as "box_perms" %}
-<div class="wrap mdl-card mdl-shadow--2dp mdl-cell--8-col mdl-cell--2-offset-desktop mdl-grid">
+<div class="wrap mdl-card mdl-shadow--2dp mdl-cell--10-col mdl-cell--2-offset-desktop mdl-grid">
   <div class="mdl-card__title">
-    <h2 class="mdl-card__title-text">Ticket #{{ ticket.pk }}: {{ ticket.title }}</h2>
+    <h2 class="mdl-card__title-text">{{ ticket.title }}</h2>
   </div>
   <div class="mdl-card__supporting-text">
   <span class="body">{{ ticket.body|linebreaks}}</span><br><hr>
-
+  Ticket #{{ ticket.pk }}<br>
   Submitted by
       {% if ticket.anonymous %}
         Anonymous
@@ -45,15 +45,16 @@
       at {{ ticket.timestamp|date:"n/j/Y, g:i:s A" }}<br>
       Status: {{ ticket.status }}<br>
 
+
   </div>
   <div class="mdl-card__actions mdl-card--border">
   {% if "action_manage_tickets" in box_perms or request.user == ticket.owner %}
-  <br></br>
   <form method="post" action="{% url 'constellation_ticketbox:api_v1_ticket_update_status' id %}" id="updateForm" class="mdl-cell--16-col">
     {% csrf_token %}
       {{ status_form.title.as_hidden}}
       {{ status_form.body.as_hidden}}
       {{ status_form.anonymous.as_hidden}}
+
       <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label mdl-cell--7-col mdl-cell--bottom">
           {{ status_form.status }}
           <label class="mdl-textfield__label" for="{{ status_form.status.id_for_label }}">Status</label>
@@ -62,6 +63,8 @@
             Update Status <i class="material-icons right">done</i>
          </button>
     </form>
+
+
     <br>
     {% if not ticket.archived %}
               <a href="{% url 'constellation_ticketbox:api_v1_ticket_archive' id %}" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--primary">Close Ticket</a>
@@ -75,7 +78,7 @@
 </div>
 <br></br>
 
-<div id="repliesCard" class="wrap mdl-cell--10-col mdl-cell--2-offset-desktop mdl-grid">
+<div id="repliesCard" class="wrap mdl-cell--10-col mdl-cell--2-offset-desktop">
     {% verbatim %}
     <script id="handlebars-replies" type="text/x-handlebars-template">
       <ul class="mdl-list">
@@ -94,7 +97,7 @@
                   {{/if}}
                   updated this ticket at {{timestamp}}:
                 </span>
-                <span class="mdl-list__item-text-body whitespace">{{body}}</span>
+                <span class="mdl-list__item-text-body wrap">{{body}}</span>
               </span>
             </li>
           {{else}}
@@ -110,7 +113,7 @@
                     {{/if}}
                     replied to this ticket at {{timestamp}}:
                   </span>
-                <span class="mdl-list__item-text-body whitespace">{{body}}</span>
+                <span class="mdl-list__item-text-body">{{body}}</span>
               </span>
             </li>
 
@@ -125,7 +128,7 @@
     {% endverbatim %}
 </div>
 
-<div class="mdl-cell--8-col mdl-cell--2-offset-desktop mdl-grid">
+<div class="mdl-cell--10-col mdl-cell--2-offset-desktop mdl-grid">
   <div class="mdl-card__title">
     <h2 class="mdl-card__title-text">New Reply</h2>
   </div>

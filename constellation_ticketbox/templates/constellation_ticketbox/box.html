@@ -28,7 +28,38 @@
 {% block content %}
 {% load guardian_tags %}
 {% get_obj_perms request.user for box as "box_perms" %}
-<div id="ticketsCard" class="wrap mdl-card mdl-cell--8-col mdl-cell--2-offset-desktop mdl-shadow--2dp mdl-grid">
+<div id="formCard" class="form-card mdl-card mdl-cell--10-col mdl-cell--2-offset-desktop mdl-shadow--2dp mdl-grid">
+   <div class="mdl-card__title">
+      <h2 class="mdl-card__title-text">New Ticket</h2>
+   </div>
+   <div class="mdl-card__supporting-text">
+      <form method="post" action="{% url 'constellation_ticketbox:api_v1_ticket_create' id %}" id="newTicketForm" class="mdl-cell--12-col">
+         {% csrf_token %}
+         <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label mdl-cell--12-col mdl-cell--bottom">
+            {{ form.title }}
+            <label class="mdl-textfield__label" for="{{ form.title.id_for_label }}">Title</label>
+         </div>
+         <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label mdl-cell--12-col mdl-cell--bottom">
+            {{ form.body }}
+            <label class="mdl-textfield__label" for="{{ form.body.id_for_label }}">Body</label>
+         </div>
+         <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="{{ form.anonymous.id_for_label }}">
+           {{form.anonymous}}
+           <span class="mdl-switch__label">Anonymous</span>
+         </label>
+         {{ form.status.as_hidden }}
+         <br></br>
+         <div class="mdl-layout-spacer"></div>
+            <div class="mdl-card__actions">
+               <div class="mdl-layout-spacer"></div>
+               <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--primary">
+                  Create Ticket <i class="material-icons right">done</i>
+               </button>
+            </div>
+         </form>
+      </div>
+   </div>
+<div id="ticketsCard" class="wrap mdl-card mdl-cell--10-col mdl-cell--2-offset-desktop mdl-shadow--2dp mdl-grid">
     {% if "action_read_box" in box_perms %}
     {% verbatim %}
     <script id="handlebars-tickets" type="text/x-handlebars-template">
@@ -107,37 +138,7 @@
     {% endverbatim %}
     {% endif %}
 </div>
-<div id="formCard" class="form-card mdl-card mdl-cell--8-col mdl-cell--2-offset-desktop mdl-shadow--2dp mdl-grid">
-   <div class="mdl-card__title">
-      <h2 class="mdl-card__title-text">New Ticket</h2>
-   </div>
-   <div class="mdl-card__supporting-text">
-      <form method="post" action="{% url 'constellation_ticketbox:api_v1_ticket_create' id %}" id="newTicketForm" class="mdl-cell--12-col">
-         {% csrf_token %}
-         <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label mdl-cell--12-col mdl-cell--bottom">
-            {{ form.title }}
-            <label class="mdl-textfield__label" for="{{ form.title.id_for_label }}">Title</label>
-         </div>
-         <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label mdl-cell--12-col mdl-cell--bottom">
-            {{ form.body }}
-            <label class="mdl-textfield__label" for="{{ form.body.id_for_label }}">Body</label>
-         </div>
-         <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="{{ form.anonymous.id_for_label }}">
-           {{form.anonymous}}
-           <span class="mdl-switch__label">Anonymous</span>
-         </label>
-         {{ form.status.as_hidden }}
-         <br></br>
-         <div class="mdl-layout-spacer"></div>
-            <div class="mdl-card__actions">
-               <div class="mdl-layout-spacer"></div>
-               <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--primary">
-                  Create Ticket <i class="material-icons right">done</i>
-               </button>
-            </div>
-         </form>
-      </div>
-   </div>
+
 <div class="fixed-action-btn">
   {% if "action_manage_box" in box_perms %}
   <a href="{% url 'constellation_ticketbox:manage_box_edit' id %}" class="fab">

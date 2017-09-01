@@ -287,7 +287,7 @@ def api_v1_ticket_create(request, box_id):
         newTicket.box = get_object_or_404(Box, pk=box_id)
         newTicket.owner = request.user
         newTicket.anonymous = ticketForm.cleaned_data['anonymous']
-        newTicket.status = 'Open'
+        newTicket.status = 'Created'
 
         newTicket.save()
         return HttpResponse(serializers.serialize('json', [newTicket]))

@@ -29,7 +29,7 @@
 {% block content %}
 {% load guardian_tags %}
 {% get_obj_perms request.user for box as "box_perms" %}
-<div id="ticketsCard" class="wrap mdl-card mdl-cell--8-col mdl-cell--2-offset-desktop mdl-shadow--2dp mdl-grid">
+<div id="ticketsCard" class="wrap mdl-card mdl-cell--10-col mdl-cell--2-offset-desktop mdl-shadow--2dp mdl-grid">
     {% if "action_read_box" in box_perms %}
     {% verbatim %}
     <script id="handlebars-archived" type="text/x-handlebars-template">
