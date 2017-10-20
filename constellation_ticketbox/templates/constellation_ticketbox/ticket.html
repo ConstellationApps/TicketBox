@@ -16,9 +16,15 @@
 </div>
 {{ block.super }}
 {% load static %}
-<script src="{% static 'constellation_ticketbox/js/ticket.js' %}"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.5/handlebars.min.js"></script>
+<script src="{% static 'constellation_ticketbox/js/ticket.js' %}"></script>
 <script>
+  /* 10/20/2017, from https://gist.github.com/sylvaindethier/a5f7435af4eda9e9b474 */
+  Handlebars.registerHelper('nl2br', function (text, isXhtml) {
+    var breakTag = (isXhtml || typeof isXhtml === 'undefined') ? '<br />' : '<br>';
+    return (text + '').replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, '$1' + breakTag + '$2');
+  });
+  
     var ticket_id = "{{ id }}"
     var url_api_v1_ticket_replies = "{% url 'constellation_ticketbox:api_v1_ticket_replies' id %}"
     var url_api_v1_ticket_archive = "{% url 'constellation_ticketbox:api_v1_ticket_archive' id %}"
@@ -97,10 +103,12 @@
                   {{/if}}
                   updated this ticket at {{timestamp}}:
                 </span>
-                <span class="mdl-list__item-text-body wrap">{{body}}</span>
+                <span class="mdl-list__item-text-body wrap">{{{nl2br body}}}</span>
               </span>
             </li>
           {{else}}
+
+
 
             <li class="mdl-list__item mdl-list__item--three-line">
               <span class="mdl-list__item-primary-content">
@@ -113,7 +121,7 @@
                     {{/if}}
                     replied to this ticket at {{timestamp}}:
                   </span>
-                <span class="mdl-list__item-text-body">{{body}}</span>
+                <span class="mdl-list__item-text-body">{{{nl2br body}}}</span>
               </span>
             </li>
 
